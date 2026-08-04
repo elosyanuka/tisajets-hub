@@ -206,6 +206,20 @@ html, body { height: 100%; font-family: 'Poppins', sans-serif; background: #f7f8
 #results-area.show { display: block; }
 #empty-state { display: flex; }
 #empty-state.hidden { display: none; }
+@media (max-width: 768px) {
+  .main { flex-direction: column; overflow: visible; height: auto; }
+  .panel-left { width: 100%; border-right: none; border-bottom: 1px solid #e4e7ec; overflow-y: visible; }
+  .panel-right { overflow-y: visible; padding: 16px; }
+  .stat-cards { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .field-row { grid-template-columns: 1fr; }
+  .results-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .results-table thead, .results-table tbody, .results-table tr { display: table; width: 100%; table-layout: fixed; }
+  .operators-grid { grid-template-columns: 1fr; }
+  .page-header { padding: 14px 16px; }
+  .header-title { font-size: 16px; }
+  .app { overflow-y: auto; height: auto; min-height: 100vh; }
+  input, select { font-size: 16px !important; }
+}
 
 /* ── OPERATORS ── */
 .operators-section { margin-top: 16px; }

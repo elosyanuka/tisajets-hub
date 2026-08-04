@@ -137,6 +137,19 @@ tbody td{padding:14px 16px;font-size:13.5px;vertical-align:middle}
 .pm-close-bar button{padding:10px 22px;border-radius:8px;font-family:'Poppins',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none}
 .pm-btn-close{background:#e2e8f0;color:#1a1a2e}
 .pm-btn-pdf{background:#0F1835;color:#fff}
+@media(max-width:768px){
+  .stats-row{grid-template-columns:1fr 1fr;gap:10px}
+  .form-row{grid-template-columns:1fr}
+  .pm-sigs{grid-template-columns:1fr}
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{min-width:480px}
+  th,td{padding:10px 12px;font-size:12px;white-space:nowrap}
+  .pm-overlay{align-items:flex-end}
+  .pm-modal{width:100%;max-width:100%;border-radius:16px 16px 0 0;max-height:92vh;overflow-y:auto;margin:0}
+  .pm-close-bar{flex-wrap:wrap;gap:8px}
+  .pm-close-bar button{flex:1}
+  input,select,textarea{font-size:16px !important}
+}
 </style>
 </head>
 <body>
@@ -218,7 +231,7 @@ tbody td{padding:14px 16px;font-size:13.5px;vertical-align:middle}
       <div class="form-row">
         <div class="form-group">
           <label>Reference</label>
-          <input type="text" id="f-ref" readonly style="background:#f8faff;color:#888"/>
+          <input type="text" id="f-ref" placeholder="TJ-AGR-001"/>
         </div>
         <div class="form-group">
           <label>Date</label>

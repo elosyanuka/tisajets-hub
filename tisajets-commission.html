@@ -211,6 +211,17 @@ tr:hover .del-btn { opacity: 1; }
 .mt20 { margin-top: 20px; }
 .spinner { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(255,255,255,.3); border-top-color: white; border-radius: 50%; animation: spin .6s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+@media (max-width: 768px) {
+  .key-metrics { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .field-row.cols-2 { grid-template-columns: 1fr; }
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { min-width: 480px; }
+  th, td { padding: 10px 12px; font-size: 12px; white-space: nowrap; }
+  .modal-overlay { align-items: flex-end; padding: 0; }
+  .modal-box { width: 100%; border-radius: 16px 16px 0 0; max-height: 90vh; overflow-y: auto; }
+  .btn { min-width: 0; }
+  input, select, textarea { font-size: 16px !important; }
+}
 </style>
 </head>
 <body>

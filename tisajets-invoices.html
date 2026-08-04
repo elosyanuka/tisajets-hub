@@ -201,6 +201,22 @@ html, body { height: 100%; font-family: 'Poppins', sans-serif; background: #f7f8
 .empty-state p { font-size: 14px; }
 
 /* ── MODAL ── */
+@media (max-width: 768px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .form-card.full { grid-column: 1; }
+  .field-row { grid-template-columns: 1fr; }
+  .field-row3 { grid-template-columns: 1fr; }
+  .topbar { flex-wrap: wrap; height: auto; padding: 10px 14px; gap: 8px; }
+  .topbar-brand { margin-right: 0; padding: 0; }
+  .topbar-tab { padding: 8px 12px; font-size: 12px; }
+  .inv-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { min-width: 520px; }
+  th, td { padding: 10px 12px; font-size: 12px; white-space: nowrap; }
+  .modal-overlay { align-items: flex-end !important; padding: 0 !important; }
+  .modal-box, .modal-box.wide, .modal-box.narrow { width: 100%; max-width: 100%; border-radius: 16px 16px 0 0; max-height: 92vh; overflow-y: auto; }
+  .btn { min-width: 0; }
+  input, select, textarea { font-size: 16px !important; }
+}
 .modal-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,0.5);
   display: flex; align-items: center; justify-content: center;
@@ -331,7 +347,7 @@ html, body { height: 100%; font-family: 'Poppins', sans-serif; background: #f7f8
           <div class="field-row">
             <div class="field">
               <label>Invoice Number</label>
-              <input id="f_number" type="text" placeholder="TJ-INV-001" readonly style="background:#f9fafb;color:#667085"/>
+              <input id="f_number" type="text" placeholder="TJ-INV-001"/>
             </div>
             <div class="field">
               <label>Currency</label>
