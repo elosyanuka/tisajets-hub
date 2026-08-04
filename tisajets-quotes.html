@@ -159,6 +159,64 @@ tbody td{padding:12px 14px;font-size:13px;vertical-align:middle}
 .pay-item .pi-value{font-size:13px;font-weight:600;color:var(--navy)}
 .view-footer{text-align:center;padding:20px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);margin-top:20px}
 
+/* ── PREVIEW OVERLAY ── */
+.preview-overlay{position:fixed;inset:0;z-index:300;background:rgba(10,14,32,.97);display:flex;flex-direction:column;overflow:hidden}
+.preview-overlay.hidden{display:none}
+.preview-topbar{background:var(--navy);color:#fff;padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:2px solid var(--gold)}
+.preview-topbar-title{font-size:13px;font-weight:600;color:rgba(255,255,255,.65)}
+.preview-topbar-actions{display:flex;gap:8px}
+.preview-scroll{flex:1;overflow-y:auto;padding:28px 16px;-webkit-overflow-scrolling:touch}
+.preview-doc{max-width:720px;margin:0 auto;background:#fff;border-radius:4px;box-shadow:0 8px 48px rgba(0,0,0,.55);overflow:hidden;font-size:13px}
+.prev-header{background:var(--navy);padding:28px 32px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px}
+.prev-header-left .co-name{font-size:20px;font-weight:700;color:#fff}
+.prev-header-left .co-sub{font-size:11px;color:rgba(255,255,255,.45);margin-top:2px}
+.prev-header-left .co-addr{font-size:10px;color:rgba(255,255,255,.35);margin-top:8px;line-height:1.7}
+.prev-header-right{text-align:right}
+.prev-header-right .doc-type{font-size:10px;text-transform:uppercase;letter-spacing:.9px;color:var(--gold);font-weight:700}
+.prev-header-right .doc-ref{font-size:22px;font-weight:700;color:#fff;margin:4px 0}
+.prev-header-right .doc-meta{font-size:11px;color:rgba(255,255,255,.45);line-height:1.8}
+.prev-header-right .doc-valid{color:var(--gold)}
+.prev-gold-bar{height:3px;background:var(--gold)}
+.prev-body{padding:28px 32px}
+.prev-section{margin-bottom:24px}
+.prev-section:last-child{margin-bottom:0}
+.prev-section-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--gold);border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:12px}
+.prev-client-name{font-size:16px;font-weight:700;color:var(--navy);margin-bottom:4px}
+.prev-client-detail{font-size:12px;color:var(--text-l);margin-top:3px}
+.prev-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:0}
+.prev-table th{background:var(--off);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)}
+.prev-table td{padding:9px 12px;border-bottom:1px solid var(--off);color:var(--text)}
+.prev-table tr:last-child td{border-bottom:none}
+.prev-price-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--off);font-size:13px;color:var(--text-l)}
+.prev-price-total{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--navy);border-radius:8px;margin-top:10px}
+.prev-price-total .ptl{font-weight:600;color:rgba(255,255,255,.65);font-size:12px}
+.prev-price-total .ptv{font-size:20px;font-weight:700;color:#fff}
+.prev-sv-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.prev-sv-col h5{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.prev-sv-col.inc h5{color:var(--success)}
+.prev-sv-col.exc h5{color:var(--danger)}
+.prev-sv-item{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:var(--text);margin-bottom:6px}
+.prev-sv-item i{font-size:10px;width:12px;margin-top:2px;flex-shrink:0}
+.prev-sv-col.inc .prev-sv-item i{color:var(--success)}
+.prev-sv-col.exc .prev-sv-item i{color:var(--danger)}
+.prev-terms{counter-reset:tc}
+.prev-terms p{counter-increment:tc;display:flex;gap:8px;font-size:11px;color:var(--text-l);margin-bottom:6px;line-height:1.6}
+.prev-terms p::before{content:counter(tc)".";font-weight:600;color:var(--navy);flex-shrink:0;width:14px}
+.prev-pay-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.prev-pay-item .pp-label{font-size:10px;color:var(--muted);margin-bottom:2px}
+.prev-pay-item .pp-value{font-size:13px;font-weight:600;color:var(--navy)}
+.prev-notes-text{font-size:12px;color:var(--text-l);white-space:pre-wrap;line-height:1.7}
+.prev-footer{background:var(--navy);padding:14px 32px;text-align:center;font-size:10px;color:rgba(255,255,255,.35);letter-spacing:.2px}
+@media(max-width:600px){
+  .preview-scroll{padding:12px 6px}
+  .prev-header{padding:20px 18px}
+  .prev-body{padding:20px 18px}
+  .prev-sv-grid,.prev-pay-grid{grid-template-columns:1fr}
+  .preview-topbar{padding:0 12px}
+  .preview-topbar-title{font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .prev-table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+}
+
 /* ── SYNC / MODAL ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px}
 @media(max-width:768px){
@@ -429,8 +487,27 @@ tbody td{padding:12px 14px;font-size:13px;vertical-align:middle}
     <!-- Actions -->
     <div class="form-actions">
       <button class="btn btn-outline" onclick="saveDraft()"><i class="fa-regular fa-floppy-disk"></i> Save as Draft</button>
+      <button class="btn btn-navy" onclick="showPreview()"><i class="fa-regular fa-eye"></i> Preview</button>
       <button class="btn btn-gold" onclick="generatePDF()"><i class="fa-solid fa-file-pdf"></i> Generate PDF</button>
     </div>
+  </div>
+</div>
+
+<!-- ═══ PREVIEW OVERLAY ═══ -->
+<div id="preview-overlay" class="preview-overlay hidden">
+  <div class="preview-topbar">
+    <div class="preview-topbar-title" id="preview-topbar-title">Preview</div>
+    <div class="preview-topbar-actions">
+      <button class="btn btn-outline btn-sm" style="color:#fff;border-color:rgba(255,255,255,.3);background:transparent" onclick="closePreview()">
+        <i class="fa-solid fa-pen"></i> Edit
+      </button>
+      <button class="btn btn-gold btn-sm" onclick="closePreview();generatePDF()">
+        <i class="fa-solid fa-file-pdf"></i> Generate PDF
+      </button>
+    </div>
+  </div>
+  <div class="preview-scroll">
+    <div class="preview-doc" id="preview-doc"></div>
   </div>
 </div>
 
@@ -980,6 +1057,128 @@ function renderClientView(q) {
 function backToEdit() {
   if(editingId) editQuotation(editingId)
   else showScreen('dashboard')
+}
+
+// ═══════════════════════════════════════════════
+//  PREVIEW
+// ═══════════════════════════════════════════════
+function showPreview() {
+  const d = getFormData()
+  const issueDate  = fmtDate(new Date().toISOString())
+  const validUntil = fmtValidUntil(d.validity, new Date().toISOString())
+  const vatLabel   = d.vat_rate==='0' ? '0% (exempt)' : `${d.vat_rate}%`
+  const ref        = d.reference_number || '—'
+
+  document.getElementById('preview-topbar-title').textContent = `Preview — ${ref}`
+  document.getElementById('preview-doc').innerHTML = `
+    <div class="prev-header">
+      <div class="prev-header-left">
+        <div class="co-name">TisaJets BV</div>
+        <div class="co-sub">Private Aviation Broker</div>
+        <div class="co-addr">Appelmansstraat 1, 2018 Antwerp, Belgium<br>info@tisajets.com &nbsp;·&nbsp; +32 485 31 33 91</div>
+      </div>
+      <div class="prev-header-right">
+        <div class="doc-type">Flight Quotation</div>
+        <div class="doc-ref">${esc(ref)}</div>
+        <div class="doc-meta">Issued: ${issueDate}<br><span class="doc-valid">Valid until: ${validUntil}</span></div>
+      </div>
+    </div>
+    <div class="prev-gold-bar"></div>
+    <div class="prev-body">
+
+      <div class="prev-section">
+        <div class="prev-section-title">Bill To</div>
+        <div class="prev-client-name">${d.client_name ? esc(d.client_name) : '<span style="color:var(--muted);font-weight:400">—</span>'}</div>
+        ${d.client_email ? `<div class="prev-client-detail"><i class="fa-solid fa-envelope" style="margin-right:5px;color:var(--muted)"></i>${esc(d.client_email)}</div>` : ''}
+        ${d.client_phone ? `<div class="prev-client-detail"><i class="fa-solid fa-phone" style="margin-right:5px;color:var(--muted)"></i>${esc(d.client_phone)}</div>` : ''}
+      </div>
+
+      <div class="prev-section">
+        <div class="prev-section-title">Flight Details</div>
+        <table class="prev-table" style="margin-bottom:8px">
+          <thead><tr><th>Route</th><th>Date</th><th>Dep. Time</th><th>Est. Duration</th></tr></thead>
+          <tbody><tr>
+            <td><strong>${esc(d.route_from||'—')} → ${esc(d.route_to||'—')}</strong></td>
+            <td>${d.flight_date ? fmtDate(d.flight_date) : '—'}</td>
+            <td>${d.departure_time||'—'}</td>
+            <td>${d.flight_time||'—'}</td>
+          </tr></tbody>
+        </table>
+        <table class="prev-table">
+          <thead><tr><th>Aircraft Type</th><th>Registration</th><th>Capacity</th><th>Passengers</th></tr></thead>
+          <tbody><tr>
+            <td>${esc(d.aircraft_type||'—')}</td>
+            <td>${esc(d.aircraft_registration||'—')}</td>
+            <td>${d.passenger_capacity ? `${d.passenger_capacity} seats` : '—'}</td>
+            <td>${d.passenger_count||'—'}</td>
+          </tr></tbody>
+        </table>
+      </div>
+
+      <div class="prev-section">
+        <div class="prev-section-title">Pricing</div>
+        <div class="prev-price-row"><span>Charter Price</span><span>${fmtCurrency(d.total_price)}</span></div>
+        <div class="prev-price-row"><span>VAT (${vatLabel})</span><span>${fmtCurrency(d.vat_amount)}</span></div>
+        <div class="prev-price-total">
+          <span class="ptl">Total incl. VAT</span>
+          <span class="ptv">${fmtCurrency(d.total_with_vat)}</span>
+        </div>
+      </div>
+
+      <div class="prev-section">
+        <div class="prev-section-title">Services</div>
+        <div class="prev-sv-grid">
+          <div class="prev-sv-col inc">
+            <h5><i class="fa-solid fa-check-circle"></i> Included</h5>
+            ${(d.included_services||[]).map(s=>`<div class="prev-sv-item"><i class="fa-solid fa-check"></i><span>${esc(s)}</span></div>`).join('')||'<div style="font-size:11px;color:var(--muted)">None</div>'}
+          </div>
+          <div class="prev-sv-col exc">
+            <h5><i class="fa-solid fa-times-circle"></i> Excluded</h5>
+            ${(d.excluded_services||[]).length
+              ? d.excluded_services.map(s=>`<div class="prev-sv-item"><i class="fa-solid fa-times"></i><span>${esc(s)}</span></div>`).join('')
+              : '<div style="font-size:11px;color:var(--muted)">None</div>'}
+          </div>
+        </div>
+      </div>
+
+      ${d.notes ? `
+      <div class="prev-section">
+        <div class="prev-section-title">Notes</div>
+        <div class="prev-notes-text">${esc(d.notes)}</div>
+      </div>` : ''}
+
+      <div class="prev-section">
+        <div class="prev-section-title">Terms &amp; Conditions</div>
+        <div class="prev-terms">
+          <p>This quotation is valid for ${VALIDITY_LABELS[d.validity]||d.validity} from the date of issue.</p>
+          <p>Confirmation requires a signed broker agreement and full payment to TisaJets BV.</p>
+          <p>For international passenger flights, 0% VAT applies under Article 148(f) of the EU VAT Directive.</p>
+          <p>Prices are subject to aircraft and crew availability at the time of booking.</p>
+          <p>Empty leg flights are subject to cancellation if the primary charter changes.</p>
+        </div>
+      </div>
+
+      <div class="prev-section">
+        <div class="prev-section-title">Payment Details</div>
+        <div class="prev-pay-grid">
+          <div class="prev-pay-item"><div class="pp-label">Account Holder</div><div class="pp-value">TisaJets BV</div></div>
+          <div class="prev-pay-item"><div class="pp-label">Bank</div><div class="pp-value">KBC Bank</div></div>
+          <div class="prev-pay-item"><div class="pp-label">IBAN</div><div class="pp-value">BE39 7390 3272 9619</div></div>
+          <div class="prev-pay-item"><div class="pp-label">BIC / SWIFT</div><div class="pp-value">KREDBEBB</div></div>
+        </div>
+      </div>
+
+    </div>
+    <div class="prev-footer">
+      TisaJets BV &nbsp;·&nbsp; Appelmansstraat 1, 2018 Antwerp, Belgium &nbsp;·&nbsp; info@tisajets.com &nbsp;·&nbsp; +32 485 31 33 91
+    </div>
+  `
+  document.querySelector('.preview-scroll').scrollTop = 0
+  document.getElementById('preview-overlay').classList.remove('hidden')
+}
+
+function closePreview() {
+  document.getElementById('preview-overlay').classList.add('hidden')
 }
 
 // ═══════════════════════════════════════════════
