@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TisaJets — Flight Confirmations</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Poppins',sans-serif;background:#f4f6fb;color:#1a1a2e;font-size:14px}
+
+/* ── LOGIN ─────────────────────────────────────────────────── */
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0F1835 0%,#1a2a5e 50%,#0F1835 100%)}
+.login-card{background:white;border-radius:20px;padding:48px 40px;width:100%;max-width:400px;box-shadow:0 25px 50px rgba(0,0,0,.4);display:flex;flex-direction:column;align-items:center}
+.login-logo{font-size:2.5rem;font-weight:700;color:#C5920D;letter-spacing:.2em}
+.login-sub{color:#9ca3af;font-size:.8rem;margin-top:4px;margin-bottom:24px}
+.login-div{width:60px;height:2px;background:#C5920D;margin-bottom:24px}
+.login-card input[type=password]{width:100%;border:1.5px solid #e5e7eb;border-radius:10px;padding:12px 16px;font-family:'Poppins',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s}
+.login-card input:focus{border-color:#C5920D}
+.login-btn{width:100%;margin-top:16px;padding:12px;background:#0F1835;color:white;border:none;border-radius:10px;font-family:'Poppins',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;transition:opacity .2s;letter-spacing:.05em}
+.login-btn:hover{opacity:.85}
+.login-err{color:#dc2626;font-size:.8rem;margin-top:8px;display:none}
+
+/* ── APP ────────────────────────────────────────────────────── */
+#app{display:none}
+.topbar{background:#0F1835;padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.3)}
+.topbar-brand{color:#C5920D;font-weight:700;font-size:1.2rem;letter-spacing:.15em}
+.topbar-sub{color:rgba(255,255,255,.4);font-size:.7rem;margin-left:12px}
+.topbar-nav{display:flex;align-items:center;gap:8px}
+.nav-btn{padding:6px 16px;border-radius:6px;font-size:.8rem;font-weight:500;cursor:pointer;border:none;font-family:'Poppins',sans-serif;transition:all .15s}
+.nav-btn.active{background:#C5920D;color:white}
+.nav-btn:not(.active){background:transparent;color:rgba(255,255,255,.6)}
+.nav-btn:not(.active):hover{background:rgba(255,255,255,.1);color:white}
+
+/* ── CARDS / FORM ───────────────────────────────────────────── */
+.page-header{padding:20px 24px 12px}
+.page-title{font-size:1.4rem;font-weight:700;color:#0F1835}
+.page-subtitle{color:#6b7280;font-size:.8rem;margin-top:2px}
+.card{background:white;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:16px;overflow:hidden}
+.card-header{background:#0F1835;color:#C5920D;padding:10px 20px;font-size:.8rem;font-weight:600;letter-spacing:.05em;border-top:3px solid #C5920D}
+.card-body{padding:20px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+label{display:block;font-size:.7rem;font-weight:500;color:#6b7280;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+input[type=text],input[type=email],input[type=number],input[type=date],select,textarea{width:100%;border:1.5px solid #e5e7eb;border-radius:8px;padding:9px 12px;font-family:'Poppins',sans-serif;font-size:.85rem;outline:none;transition:border-color .2s;background:white;color:#1a1a2e}
+input:focus,select:focus,textarea:focus{border-color:#C5920D}
+input[readonly]{background:#f9fafb;color:#9ca3af;cursor:not-allowed}
+textarea{resize:vertical;min-height:80px}
+
+/* ── BUTTONS ────────────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 20px;border-radius:8px;font-size:.82rem;font-weight:600;border:none;cursor:pointer;font-family:'Poppins',sans-serif;transition:opacity .15s;letter-spacing:.02em}
+.btn:hover{opacity:.85}
+.btn-navy{background:#0F1835;color:white}
+.btn-gold{background:#C5920D;color:white}
+.btn-indigo{background:#4f46e5;color:white}
+.btn-ghost{background:#f3f4f6;color:#374151}
+.btn-sm{padding:5px 12px;font-size:.75rem}
+.btn-dashed{background:transparent;border:1.5px dashed #d1d5db;color:#6b7280;width:100%;justify-content:center;margin-top:12px}
+.btn-dashed:hover{border-color:#C5920D;color:#C5920D;opacity:1}
+.action-bar{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #e5e7eb;box-shadow:0 -4px 16px rgba(0,0,0,.08);padding:14px 24px;z-index:50;display:flex;align-items:center;justify-content:space-between}
+.action-bar-right{display:flex;gap:10px}
+
+/* ── STATS ──────────────────────────────────────────────────── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding:16px 24px}
+.stat-card{background:white;border-radius:12px;padding:18px 20px;box-shadow:0 1px 4px rgba(0,0,0,.07);border-left:4px solid}
+.stat-label{font-size:.7rem;font-weight:500;color:#6b7280;text-transform:uppercase;letter-spacing:.05em}
+.stat-value{font-size:2rem;font-weight:700;color:#0F1835;margin-top:4px}
+.dash-controls{display:flex;gap:12px;padding:0 24px 12px;align-items:center}
+.search-input{flex:1;border:1.5px solid #e5e7eb;border-radius:8px;padding:9px 14px;font-family:'Poppins',sans-serif;font-size:.85rem;outline:none}
+.search-input:focus{border-color:#C5920D}
+.filter-select{border:1.5px solid #e5e7eb;border-radius:8px;padding:9px 12px;font-family:'Poppins',sans-serif;font-size:.85rem;outline:none;background:white}
+
+/* ── TABLE ──────────────────────────────────────────────────── */
+.table-wrap{background:white;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin:0 24px 100px;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+thead tr{background:#0F1835;color:white}
+th{padding:11px 14px;text-align:left;font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+td{padding:11px 14px;border-bottom:1px solid #f3f4f6;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:nth-child(even) td{background:rgba(244,246,251,.5)}
+tr:hover td{background:#f4f6fb}
+.status-sel{border:none;font-family:'Poppins',sans-serif;font-size:.74rem;font-weight:600;cursor:pointer;outline:none;padding:3px 10px;border-radius:20px}
+.act-btn{padding:4px 10px;border-radius:6px;font-size:.72rem;font-weight:600;border:none;cursor:pointer;font-family:'Poppins',sans-serif;transition:opacity .15s}
+.act-btn:hover{opacity:.8}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;color:#9ca3af}
+.empty-icon{font-size:3rem;margin-bottom:12px;opacity:.4}
+.empty-title{font-size:1rem;font-weight:600;color:#6b7280}
+.empty-sub{font-size:.8rem;margin-top:4px}
+
+/* ── PASSENGER ROWS ─────────────────────────────────────────── */
+.pax-row{display:grid;grid-template-columns:28px 1fr 130px 140px 120px 32px;gap:8px;align-items:end;padding:12px;background:#f9fafb;border-radius:8px;margin-bottom:8px}
+.pax-num{display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:.75rem;font-weight:600;padding-bottom:10px}
+.rm-pax{background:none;border:none;cursor:pointer;color:#dc2626;font-size:1rem;padding:4px 6px;border-radius:6px;transition:background .15s;padding-bottom:12px}
+.rm-pax:hover{background:#fee2e2}
+
+/* ── TOAST ──────────────────────────────────────────────────── */
+#toast{position:fixed;top:24px;right:24px;z-index:9999;background:#0F1835;color:white;padding:12px 20px;border-radius:10px;font-size:.85rem;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.25);display:none;max-width:320px;border-left:4px solid #C5920D}
+#toast.err{border-left-color:#dc2626}
+
+/* ── PREVIEW MODAL ──────────────────────────────────────────── */
+#preview-overlay{position:fixed;inset:0;z-index:1000;background:rgba(15,24,53,.85);backdrop-filter:blur(4px);display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:32px 16px}
+#preview-overlay.open{display:flex}
+#preview-modal{background:white;width:100%;max-width:760px;border-radius:12px;overflow:hidden}
+.pm-bar{background:#0F1835;display:flex;align-items:center;justify-content:space-between;padding:12px 20px;position:sticky;top:0;z-index:10}
+.pm-title{color:white;font-size:.85rem;font-weight:600}
+.pm-close{background:none;border:none;color:rgba(255,255,255,.6);cursor:pointer;font-size:1rem;padding:4px 8px;border-radius:6px}
+.pm-close:hover{background:rgba(255,255,255,.1);color:white}
+#preview-body{padding:40px;font-family:'Poppins',sans-serif}
+
+/* ── PREVIEW DOC ────────────────────────────────────────────── */
+.doc-hdr{display:flex;justify-content:space-between;align-items:flex-start;background:#0F1835;padding:24px 28px;border-radius:8px 8px 0 0}
+.doc-brand{font-size:1.8rem;font-weight:700;color:#C5920D;letter-spacing:.15em}
+.doc-tag{color:rgba(255,255,255,.5);font-size:.72rem;margin-top:2px}
+.doc-contact-r{text-align:right;color:rgba(255,255,255,.6);font-size:.7rem;line-height:1.7}
+.doc-gold-bar{height:3px;background:#C5920D}
+.doc-title-blk{text-align:center;padding:24px 0 16px}
+.doc-title{font-size:1.4rem;font-weight:700;color:#0F1835;letter-spacing:.15em}
+.doc-title-line{width:180px;height:2px;background:#C5920D;margin:8px auto 12px}
+.doc-meta{display:flex;justify-content:center;gap:40px;font-size:.78rem;color:#6b7280}
+.doc-meta b{color:#0F1835}
+.doc-sec{margin-bottom:24px}
+.doc-sec-h{font-size:.72rem;font-weight:700;color:#0F1835;text-transform:uppercase;letter-spacing:.1em}
+.doc-sec-bar{height:2px;width:36px;background:#C5920D;margin:5px 0 12px}
+.doc-tbl{width:100%;border-collapse:collapse;font-size:.8rem}
+.doc-tbl td{padding:8px 12px;border-bottom:1px solid #f0f0f0}
+.doc-tbl td:first-child{font-weight:600;color:#0F1835;width:170px}
+.doc-tbl tr:nth-child(odd) td{background:#fafafa}
+.doc-tbl thead th{background:#0F1835;color:white;padding:9px 12px;text-align:left;font-size:.75rem;font-weight:600}
+.doc-kv{display:flex;gap:12px;margin-bottom:6px;font-size:.8rem}
+.doc-kv-l{font-weight:600;color:#0F1835;min-width:150px;flex-shrink:0}
+.doc-kv-v{color:#374151}
+.doc-bullets li{list-style:none;display:flex;gap:8px;margin-bottom:8px;font-size:.8rem;color:#374151;line-height:1.6}
+.doc-dash{color:#C5920D;font-weight:700;flex-shrink:0}
+.doc-footer-ln{border-top:2px solid #C5920D;padding-top:12px;text-align:center;font-size:.7rem;color:#9ca3af;margin-top:24px}
+
+@media(max-width:768px){
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .grid-2{grid-template-columns:1fr}
+  .pax-row{grid-template-columns:28px 1fr 1fr;grid-template-rows:auto auto auto}
+}
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">TISAJETS</div>
+    <p class="login-sub">Flight Confirmation Generator</p>
+    <div class="login-div"></div>
+    <p style="color:#6b7280;font-size:.8rem;margin-bottom:16px;text-align:center;">Internal tool — authorised access only</p>
+    <input type="password" id="pw" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()" />
+    <p class="login-err" id="login-err">Incorrect password. Please try again.</p>
+    <button class="login-btn" onclick="doLogin()">Sign In</button>
+    <p style="margin-top:28px;font-size:.72rem;color:#9ca3af;">TisaJets BV · Appelmansstraat 1, 2018 Antwerp</p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <nav class="topbar">
+    <div style="display:flex;align-items:center;">
+      <span class="topbar-brand">TISAJETS</span>
+      <span class="topbar-sub">Flight Confirmations</span>
+    </div>
+    <div class="topbar-nav">
+      <button class="nav-btn active" id="nav-dash" onclick="goTo('dashboard')">Dashboard</button>
+      <button class="nav-btn" id="nav-form" onclick="newForm()">+ New Confirmation</button>
+    </div>
+  </nav>
+
+  <!-- DASHBOARD -->
+  <div id="screen-dash">
+    <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 8px;">
+      <div>
+        <div class="page-title">Flight Confirmations</div>
+        <div class="page-subtitle">Manage all TisaJets flight confirmation documents</div>
+      </div>
+      <button class="btn btn-gold" onclick="newForm()">+ New Confirmation</button>
+    </div>
+    <div class="stats-grid" id="stats"></div>
+    <div class="dash-controls">
+      <input class="search-input" type="text" id="q" placeholder="Search by client, ref, or route…" oninput="filterDash()" />
+      <select class="filter-select" id="sf" onchange="filterDash()">
+        <option value="">All Statuses</option>
+        <option value="confirmed">Confirmed</option>
+        <option value="completed">Completed</option>
+        <option value="cancelled">Cancelled</option>
+        <option value="rescheduled">Rescheduled</option>
+      </select>
+      <span id="rc" style="color:#9ca3af;font-size:.8rem;white-space:nowrap;"></span>
+    </div>
+    <div class="table-wrap" id="tbl"></div>
+  </div>
+
+  <!-- FORM -->
+  <div id="screen-form" style="display:none;">
+    <div class="page-header">
+      <div class="page-title" id="form-title">New Flight Confirmation</div>
+      <div class="page-subtitle" id="form-sub">Fill in the details below</div>
+    </div>
+    <div style="max-width:900px;margin:0 auto;padding:0 24px 120px;" id="form-body"></div>
+    <div class="action-bar">
+      <button class="btn btn-ghost" onclick="goTo('dashboard')">← Back</button>
+      <div class="action-bar-right">
+        <button class="btn btn-indigo" onclick="openPreview()">Preview</button>
+        <button class="btn btn-navy" onclick="saveForm()">Save</button>
+        <button class="btn btn-gold" onclick="saveAndPDF()">Save &amp; Generate PDF</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PREVIEW MODAL -->
+<div id="preview-overlay" onclick="if(event.target===this)closePreview()">
+  <div id="preview-modal">
+    <div class="pm-bar">
+      <span class="pm-title" id="pm-ref">Preview</span>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn btn-gold btn-sm" onclick="pdfFromPreview()">Download PDF</button>
+        <button class="pm-close" onclick="closePreview()">✕ Close</button>
+      </div>
+    </div>
+    <div id="preview-body"></div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   CONSTANTS & AUTH
+═══════════════════════════════════════════════════════════════ */
+const PASS = '3l2D2005'
+const SK = 'tj_confirmations_v1'
+
+function doLogin() {
+  if (document.getElementById('pw').value === PASS) {
+    sessionStorage.setItem('tj_auth','1')
+    document.getElementById('login-screen').style.display = 'none'
+    document.getElementById('app').style.display = 'block'
+    renderDash()
+  } else {
+    document.getElementById('login-err').style.display = 'block'
+    document.getElementById('pw').value = ''
+    document.getElementById('pw').focus()
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   STORAGE
+═══════════════════════════════════════════════════════════════ */
+function load() { try { return JSON.parse(localStorage.getItem(SK)||'[]') } catch { return [] } }
+function save(d) { localStorage.setItem(SK, JSON.stringify(d)) }
+
+function nextRef() {
+  let max = 0
+  for (const c of load()) {
+    const m = (c.ref||'').match(/^TJ-F-(\d+)$/)
+    if (m) max = Math.max(max, +m[1])
+  }
+  return 'TJ-F-' + String(max+1).padStart(3,'0')
+}
+function uid() { return Date.now().toString(36)+Math.random().toString(36).slice(2) }
+
+/* ═══════════════════════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════════════════════ */
+let _tt
+function toast(msg, err=false) {
+  const el = document.getElementById('toast')
+  el.textContent = msg
+  el.className = err ? 'err' : ''
+  el.style.display = 'block'
+  clearTimeout(_tt)
+  _tt = setTimeout(()=>el.style.display='none', 3500)
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════════════════ */
+function goTo(name) {
+  document.getElementById('screen-dash').style.display = name==='dashboard' ? 'block' : 'none'
+  document.getElementById('screen-form').style.display = name==='form' ? 'block' : 'none'
+  document.getElementById('nav-dash').classList.toggle('active', name==='dashboard')
+  document.getElementById('nav-form').classList.toggle('active', name==='form')
+  if (name==='dashboard') renderDash()
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FORM STATE
+═══════════════════════════════════════════════════════════════ */
+let CF = null   // current form object
+
+function emptyPax() { return {fullName:'',dob:'',passport:'',nationality:''} }
+
+function defaultCF() {
+  return {
+    id:null, ref:nextRef(), date:today(), status:'confirmed',
+    clientName:'', clientEmail:'', clientPhone:'', numPassengers:1,
+    passengers:[emptyPax()],
+    routeFrom:'', routeTo:'', flightDate:'', depTime:'', arrTime:'',
+    flightDuration:'', aircraft:'', registration:'',
+    depFboName:'', depFboAddress:'', arrFboName:'', arrFboAddress:'',
+    parkingInstructions:'', groundTransfer:'',
+    catering:'none', cateringNotes:'', specialRequests:'',
+    amountPaid:0, currency:'EUR', paymentMethod:'bank transfer',
+    paymentRef:'', paymentStatus:'paid in full',
+    additionalNotes:'', emergencyContact:'Elad Yanukashvili, +32 485 31 33 91'
+  }
+}
+
+function today() { return new Date().toISOString().split('T')[0] }
+
+function newForm() {
+  CF = defaultCF()
+  buildForm()
+  document.getElementById('form-title').textContent = 'New Flight Confirmation'
+  document.getElementById('form-sub').textContent = 'Fill in the flight details below'
+  goTo('form')
+  window.scrollTo(0,0)
+}
+
+function editConf(id) {
+  const c = load().find(x=>x.id===id)
+  if (!c) return
+  CF = JSON.parse(JSON.stringify(c))
+  buildForm()
+  document.getElementById('form-title').textContent = 'Edit — '+c.ref
+  document.getElementById('form-sub').textContent = 'Update the details below and save to apply changes'
+  goTo('form')
+  window.scrollTo(0,0)
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BUILD FORM HTML
+═══════════════════════════════════════════════════════════════ */
+function buildForm() {
+  const f = CF
+  const sel = (name, opts, val) =>
+    `<select id="f-${name}">${opts.map(([v,l])=>`<option value="${v}"${val===v?' selected':''}>${l}</option>`).join('')}</select>`
+
+  document.getElementById('form-body').innerHTML = `
+  <div class="card">
+    <div class="card-header">Reference Details</div>
+    <div class="card-body"><div class="grid-2">
+      <div><label>Confirmation Ref</label><input type="text" value="${x(f.ref)}" readonly style="color:#C5920D;font-weight:600;" /></div>
+      <div><label>Date</label><input type="date" id="f-date" value="${x(f.date)}" /></div>
+      <div><label>Status</label>${sel('status',[['confirmed','Confirmed'],['completed','Completed'],['cancelled','Cancelled'],['rescheduled','Rescheduled']],f.status)}</div>
+    </div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Client Information</div>
+    <div class="card-body"><div class="grid-2">
+      <div><label>Client Name *</label><input type="text" id="f-clientName" value="${x(f.clientName)}" placeholder="John Smith" /></div>
+      <div><label>Email</label><input type="email" id="f-clientEmail" value="${x(f.clientEmail)}" placeholder="client@example.com" /></div>
+      <div><label>Phone</label><input type="text" id="f-clientPhone" value="${x(f.clientPhone)}" placeholder="+44 7700 900000" /></div>
+      <div><label>Number of Passengers</label><input type="number" id="f-numPax" value="${f.numPassengers}" min="1" max="12" onchange="syncPaxCount()" /></div>
+    </div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Passenger Manifest</div>
+    <div class="card-body">
+      <div id="pax-list"></div>
+      <button class="btn btn-dashed" id="add-pax-btn" onclick="addPax()">+ Add Passenger</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Flight Details</div>
+    <div class="card-body"><div class="grid-2">
+      <div><label>Route From *</label><input type="text" id="f-routeFrom" value="${x(f.routeFrom)}" placeholder="London Luton (EGGW)" /></div>
+      <div><label>Route To *</label><input type="text" id="f-routeTo" value="${x(f.routeTo)}" placeholder="Nice Côte d'Azur (LFMN)" /></div>
+      <div><label>Flight Date</label><input type="date" id="f-flightDate" value="${x(f.flightDate)}" /></div>
+      <div><label>Departure Time</label><input type="text" id="f-depTime" value="${x(f.depTime)}" placeholder="10:00 local" /></div>
+      <div><label>Estimated Arrival Time</label><input type="text" id="f-arrTime" value="${x(f.arrTime)}" placeholder="12:30 local" /></div>
+      <div><label>Estimated Flight Duration</label><input type="text" id="f-flightDuration" value="${x(f.flightDuration)}" placeholder="2h 30min" /></div>
+      <div><label>Aircraft Type</label><input type="text" id="f-aircraft" value="${x(f.aircraft)}" placeholder="Cessna Citation XLS+" /></div>
+      <div><label>Aircraft Registration (optional)</label><input type="text" id="f-registration" value="${x(f.registration)}" placeholder="OO-TJS" /></div>
+    </div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">FBO &amp; Ground Details</div>
+    <div class="card-body">
+      <div class="grid-2">
+        <div><label>Departure FBO Name</label><input type="text" id="f-depFboName" value="${x(f.depFboName)}" placeholder="Signature Flight Support" /></div>
+        <div><label>Departure FBO Address</label><input type="text" id="f-depFboAddress" value="${x(f.depFboAddress)}" placeholder="Luton Airport, Luton LU2 9LY" /></div>
+        <div><label>Arrival FBO Name</label><input type="text" id="f-arrFboName" value="${x(f.arrFboName)}" placeholder="Jetex Flight Support" /></div>
+        <div><label>Arrival FBO Address</label><input type="text" id="f-arrFboAddress" value="${x(f.arrFboAddress)}" placeholder="Nice Airport, Terminal GA" /></div>
+      </div>
+      <div class="grid-2" style="margin-top:16px;">
+        <div><label>Parking Instructions (optional)</label><textarea id="f-parking" placeholder="Drop off at main FBO entrance…">${x(f.parkingInstructions)}</textarea></div>
+        <div><label>Ground Transfer Details (optional)</label><textarea id="f-ground" placeholder="Limousine service will meet you at arrival…">${x(f.groundTransfer)}</textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Services</div>
+    <div class="card-body">
+      <div class="grid-2">
+        <div><label>Catering</label>
+          ${sel('catering',[['none','None'],['standard','Standard'],['premium','Premium']],f.catering)}
+        </div>
+        <div id="cat-notes-wrap" style="${f.catering==='none'?'display:none':''}">
+          <label>Catering Notes</label>
+          <textarea id="f-cateringNotes" placeholder="2 vegetarian meals, no nuts…">${x(f.cateringNotes)}</textarea>
+        </div>
+      </div>
+      <div style="margin-top:16px;">
+        <label>Special Requests (optional)</label>
+        <textarea id="f-special" placeholder="Any special requirements or requests…">${x(f.specialRequests)}</textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Payment Status</div>
+    <div class="card-body"><div class="grid-2">
+      <div><label>Total Amount Paid</label><input type="number" id="f-amount" value="${f.amountPaid}" min="0" step="0.01" /></div>
+      <div><label>Currency</label>${sel('currency',[['EUR','EUR'],['GBP','GBP'],['USD','USD']],f.currency)}</div>
+      <div><label>Payment Method</label>${sel('payMethod',[['bank transfer','Bank Transfer'],['Stripe','Stripe'],['cryptocurrency','Cryptocurrency']],f.paymentMethod)}</div>
+      <div><label>Payment Reference</label><input type="text" id="f-payRef" value="${x(f.paymentRef)}" placeholder="TXID or reference number" /></div>
+      <div><label>Payment Status</label>${sel('payStatus',[['paid in full','Paid in Full'],['deposit received','Deposit Received'],['pending','Pending']],f.paymentStatus)}</div>
+    </div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Additional Notes</div>
+    <div class="card-body"><textarea id="f-notes" rows="4" placeholder="Any additional client-facing notes…">${x(f.additionalNotes)}</textarea></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Emergency Contact</div>
+    <div class="card-body"><input type="text" value="Elad Yanukashvili, +32 485 31 33 91" readonly /></div>
+  </div>`
+
+  // Catering toggle
+  document.getElementById('f-catering').addEventListener('change', function() {
+    document.getElementById('cat-notes-wrap').style.display = this.value === 'none' ? 'none' : 'block'
+  })
+
+  renderPaxList()
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PASSENGERS
+═══════════════════════════════════════════════════════════════ */
+function renderPaxList() {
+  const list = document.getElementById('pax-list')
+  if (!list) return
+  const pax = CF.passengers || []
+  list.innerHTML = pax.map((p,i) => `
+    <div class="pax-row">
+      <div class="pax-num">${i+1}</div>
+      <div><label>Full Name</label><input type="text" value="${x(p.fullName)}" onchange="updPax(${i},'fullName',this.value)" placeholder="Full Name" /></div>
+      <div><label>Date of Birth</label><input type="date" value="${x(p.dob)}" onchange="updPax(${i},'dob',this.value)" /></div>
+      <div><label>Passport No.</label><input type="text" value="${x(p.passport)}" onchange="updPax(${i},'passport',this.value)" placeholder="AB123456" /></div>
+      <div><label>Nationality</label><input type="text" value="${x(p.nationality)}" onchange="updPax(${i},'nationality',this.value)" placeholder="British" /></div>
+      <button class="rm-pax" onclick="rmPax(${i})" title="Remove" style="${pax.length<=1?'visibility:hidden':''}">✕</button>
+    </div>`).join('')
+  const btn = document.getElementById('add-pax-btn')
+  if (btn) btn.style.display = pax.length >= 12 ? 'none' : 'flex'
+}
+
+function updPax(i, field, val) { if (CF.passengers[i]) CF.passengers[i][field] = val }
+
+function addPax() {
+  if (!CF || CF.passengers.length >= 12) return
+  CF.passengers.push(emptyPax())
+  CF.numPassengers = CF.passengers.length
+  const el = document.getElementById('f-numPax'); if (el) el.value = CF.numPassengers
+  renderPaxList()
+}
+
+function rmPax(i) {
+  if (!CF || CF.passengers.length <= 1) return
+  CF.passengers.splice(i,1)
+  CF.numPassengers = CF.passengers.length
+  const el = document.getElementById('f-numPax'); if (el) el.value = CF.numPassengers
+  renderPaxList()
+}
+
+function syncPaxCount() {
+  const el = document.getElementById('f-numPax'); if (!el || !CF) return
+  const n = Math.max(1, Math.min(12, parseInt(el.value)||1))
+  el.value = n
+  while (CF.passengers.length < n) CF.passengers.push(emptyPax())
+  if (CF.passengers.length > n) CF.passengers = CF.passengers.slice(0,n)
+  CF.numPassengers = n
+  renderPaxList()
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   READ FORM
+═══════════════════════════════════════════════════════════════ */
+function g(id) { return (document.getElementById(id)||{}).value || '' }
+
+function readForm() {
+  return {
+    date: g('f-date'), status: g('f-status'),
+    clientName: g('f-clientName').trim(), clientEmail: g('f-clientEmail').trim(), clientPhone: g('f-clientPhone').trim(),
+    numPassengers: CF.passengers.length, passengers: CF.passengers,
+    routeFrom: g('f-routeFrom').trim(), routeTo: g('f-routeTo').trim(),
+    flightDate: g('f-flightDate'), depTime: g('f-depTime').trim(), arrTime: g('f-arrTime').trim(),
+    flightDuration: g('f-flightDuration').trim(), aircraft: g('f-aircraft').trim(), registration: g('f-registration').trim(),
+    depFboName: g('f-depFboName').trim(), depFboAddress: g('f-depFboAddress').trim(),
+    arrFboName: g('f-arrFboName').trim(), arrFboAddress: g('f-arrFboAddress').trim(),
+    parkingInstructions: g('f-parking').trim(), groundTransfer: g('f-ground').trim(),
+    catering: g('f-catering'), cateringNotes: g('f-cateringNotes').trim(), specialRequests: g('f-special').trim(),
+    amountPaid: parseFloat(g('f-amount'))||0, currency: g('f-currency'),
+    paymentMethod: g('f-payMethod'), paymentRef: g('f-payRef').trim(), paymentStatus: g('f-payStatus'),
+    additionalNotes: g('f-notes').trim(),
+    emergencyContact: 'Elad Yanukashvili, +32 485 31 33 91'
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SAVE
+═══════════════════════════════════════════════════════════════ */
+function saveForm(silent=false) {
+  const fd = readForm()
+  if (!fd.clientName) { toast('Client name is required', true); return null }
+  if (!fd.routeFrom || !fd.routeTo) { toast('Route From and Route To are required', true); return null }
+
+  const data = load()
+  const now = new Date().toISOString()
+  let saved
+
+  if (CF.id) {
+    const idx = data.findIndex(c=>c.id===CF.id)
+    if (idx===-1) { toast('Not found', true); return null }
+    saved = {...data[idx], ...fd, ref:CF.ref, id:CF.id, updatedAt:now}
+    data[idx] = saved
+  } else {
+    saved = {...fd, id:uid(), ref:CF.ref, createdAt:now, updatedAt:now}
+    data.unshift(saved)
+    CF.id = saved.id
+  }
+
+  save(data)
+  CF = {...saved}
+  if (!silent) toast(CF.id ? 'Confirmation saved!' : 'Confirmation created!')
+  return saved
+}
+
+function saveAndPDF() {
+  const saved = saveForm(true)
+  if (!saved) return
+  toast('Saved! Generating PDF…')
+  setTimeout(()=>genPDF(saved), 300)
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DASHBOARD
+═══════════════════════════════════════════════════════════════ */
+function renderDash() {
+  const data = load()
+  const now = new Date()
+  const stats = [
+    {label:'Total Confirmations', val:data.length, color:'#C5920D'},
+    {label:'Confirmed', val:data.filter(c=>c.status==='confirmed').length, color:'#16a34a'},
+    {label:'Completed', val:data.filter(c=>c.status==='completed').length, color:'#0284c7'},
+    {label:'This Month', val:data.filter(c=>{
+      try { const d=new Date(c.flightDate||c.date); return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear() } catch{return false}
+    }).length, color:'#0F1835'},
+  ]
+  document.getElementById('stats').innerHTML = stats.map(s=>`
+    <div class="stat-card" style="border-left-color:${s.color}">
+      <div class="stat-label">${s.label}</div>
+      <div class="stat-value">${s.val}</div>
+    </div>`).join('')
+  filterDash()
+}
+
+const SC = {confirmed:'#16a34a',completed:'#0284c7',cancelled:'#dc2626',rescheduled:'#d97706'}
+const SB = {confirmed:'#dcfce7',completed:'#e0f2fe',cancelled:'#fee2e2',rescheduled:'#fef3c7'}
+
+function filterDash() {
+  const data = load()
+  const q = (document.getElementById('q')?.value||'').toLowerCase()
+  const sf = document.getElementById('sf')?.value||''
+  const fil = data.filter(c=>{
+    const mq = !q||(c.clientName||'').toLowerCase().includes(q)||(c.ref||'').toLowerCase().includes(q)||
+                    (c.routeFrom||'').toLowerCase().includes(q)||(c.routeTo||'').toLowerCase().includes(q)
+    return mq && (!sf||c.status===sf)
+  })
+  document.getElementById('rc').textContent = fil.length+' result'+(fil.length!==1?'s':'')
+  renderTable(fil)
+}
+
+function renderTable(data) {
+  const wrap = document.getElementById('tbl')
+  if (!data.length) {
+    wrap.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">✈</div>
+      <div class="empty-title">No confirmations found</div>
+      <div class="empty-sub">Create your first flight confirmation to get started</div>
+    </div>`; return
+  }
+  wrap.innerHTML = `<table>
+    <thead><tr><th>Ref</th><th>Date</th><th>Client</th><th>Route</th><th>Flight Date</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>${data.map(c=>`<tr>
+      <td><span style="color:#C5920D;font-weight:700;font-size:.78rem;">${x(c.ref)}</span></td>
+      <td style="color:#6b7280;font-size:.75rem;">${fmtD(c.date)}</td>
+      <td><div style="font-weight:600;color:#0F1835;">${x(c.clientName)}</div>${c.clientEmail?`<div style="font-size:.72rem;color:#9ca3af;">${x(c.clientEmail)}</div>`:''}</td>
+      <td style="color:#374151;">${x(c.routeFrom)} → ${x(c.routeTo)}</td>
+      <td style="color:#6b7280;font-size:.75rem;">${fmtD(c.flightDate)}</td>
+      <td style="font-weight:600;color:#0F1835;">${fmtM(c.amountPaid,c.currency)}</td>
+      <td><select class="status-sel" onchange="setStatus('${c.id}',this.value)"
+        style="background:${SB[c.status]||'#f3f4f6'};color:${SC[c.status]||'#374151'}">
+        <option value="confirmed"${c.status==='confirmed'?' selected':''}>Confirmed</option>
+        <option value="completed"${c.status==='completed'?' selected':''}>Completed</option>
+        <option value="cancelled"${c.status==='cancelled'?' selected':''}>Cancelled</option>
+        <option value="rescheduled"${c.status==='rescheduled'?' selected':''}>Rescheduled</option>
+      </select></td>
+      <td><div style="display:flex;gap:4px;flex-wrap:nowrap;">
+        <button class="act-btn" style="background:#4f46e5;color:white;" onclick="editConf('${c.id}')">Edit</button>
+        <button class="act-btn" style="background:#16a34a;color:white;" onclick="pdfById('${c.id}')">PDF</button>
+        <button class="act-btn" style="background:#0284c7;color:white;" onclick="previewById('${c.id}')">Preview</button>
+        <button class="act-btn" style="background:#d97706;color:white;" onclick="dupConf('${c.id}')">Dup</button>
+        <button class="act-btn" style="background:#dc2626;color:white;" onclick="delConf('${c.id}')">Del</button>
+        ${c.clientEmail?`<button class="act-btn" style="background:#374151;color:white;" onclick="mailTo('${x(c.clientEmail)}','${x(c.ref)}')">Mail</button>`:''}
+      </div></td>
+    </tr>`).join('')}</tbody></table>`
+}
+
+function setStatus(id, s) {
+  const data = load()
+  const idx = data.findIndex(c=>c.id===id); if (idx===-1) return
+  data[idx].status = s; data[idx].updatedAt = new Date().toISOString()
+  save(data); toast('Status updated')
+  document.getElementById('stats') && renderDash()
+}
+
+function delConf(id) {
+  if (!confirm('Delete this confirmation? This cannot be undone.')) return
+  save(load().filter(c=>c.id!==id)); toast('Deleted'); renderDash()
+}
+
+function dupConf(id) {
+  const data = load(); const orig = data.find(c=>c.id===id); if (!orig) return
+  const now = new Date().toISOString()
+  const dup = {...JSON.parse(JSON.stringify(orig)), id:uid(), ref:nextRef(), clientName:orig.clientName+' (Copy)', date:today(), createdAt:now, updatedAt:now}
+  data.unshift(dup); save(data); toast('Duplicated as '+dup.ref); renderDash()
+}
+
+function mailTo(email, ref) {
+  window.location.href = `mailto:${email}?subject=Your Flight Confirmation — ${ref}&body=Dear Client,%0A%0APlease find your flight confirmation attached.%0A%0AWarm regards,%0ATisaJets BV`
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PREVIEW
+═══════════════════════════════════════════════════════════════ */
+let _pdata = null
+
+function openPreview() {
+  _pdata = {...CF, ...readForm()}
+  buildPreview(_pdata)
+  document.getElementById('pm-ref').textContent = 'Preview — '+(_pdata.ref||'Draft')
+  document.getElementById('preview-overlay').classList.add('open')
+}
+
+function previewById(id) {
+  _pdata = load().find(c=>c.id===id)
+  if (!_pdata) return
+  buildPreview(_pdata)
+  document.getElementById('pm-ref').textContent = 'Preview — '+_pdata.ref
+  document.getElementById('preview-overlay').classList.add('open')
+}
+
+function closePreview() {
+  document.getElementById('preview-overlay').classList.remove('open')
+  _pdata = null
+}
+
+function pdfFromPreview() { if (_pdata) genPDF(_pdata) }
+
+function buildPreview(c) {
+  const catL = c.catering==='standard'?'Standard Catering':c.catering==='premium'?'Premium Catering':'No Catering Selected'
+  document.getElementById('preview-body').innerHTML = `
+  <div style="font-family:'Poppins',sans-serif;">
+    <div class="doc-hdr">
+      <div><div class="doc-brand">TISAJETS</div><div class="doc-tag">Private Aviation</div></div>
+      <div class="doc-contact-r">TisaJets BV · Appelmansstraat 1, 2018 Antwerp, Belgium<br>info@tisajets.com · +32 485 31 33 91 · tisajets.com</div>
+    </div>
+    <div class="doc-gold-bar"></div>
+    <div class="doc-title-blk">
+      <div class="doc-title">FLIGHT CONFIRMATION</div>
+      <div class="doc-title-line"></div>
+      <div class="doc-meta"><span>Ref: <b>${x(c.ref)}</b></span><span>Date: <b>${fmtD(c.date)}</b></span></div>
+    </div>
+    <hr style="border:none;border-top:1px solid #f0f0f0;margin:0 0 20px;" />
+
+    <div class="doc-sec">
+      <div class="doc-sec-h">Dear ${x(c.clientName||'Valued Client')},</div>
+      <div class="doc-sec-bar"></div>
+      <p style="color:#374151;font-size:.82rem;line-height:1.7;">Thank you for choosing TisaJets for your upcoming journey. We are delighted to confirm your private flight booking and provide you with all the details you need for a seamless travel experience. Please review the information below carefully and do not hesitate to contact us should you require any amendments or have any questions.</p>
+    </div>
+
+    <div class="doc-sec">
+      <div class="doc-sec-h">Flight Details</div><div class="doc-sec-bar"></div>
+      <table class="doc-tbl"><tbody>
+        <tr><td>Route</td><td>${x(c.routeFrom)} → ${x(c.routeTo)}</td></tr>
+        <tr><td>Flight Date</td><td>${fmtD(c.flightDate)}</td></tr>
+        <tr><td>Departure Time</td><td>${x(c.depTime)||'—'}</td></tr>
+        <tr><td>Estimated Arrival</td><td>${x(c.arrTime)||'—'}</td></tr>
+        <tr><td>Flight Duration</td><td>${x(c.flightDuration)||'—'}</td></tr>
+        <tr><td>Aircraft</td><td>${[c.aircraft,c.registration].filter(Boolean).map(x).join(' · ')||'—'}</td></tr>
+      </tbody></table>
+    </div>
+
+    <div class="doc-sec">
+      <div class="doc-sec-h">Passenger Manifest</div><div class="doc-sec-bar"></div>
+      <table class="doc-tbl">
+        <thead><tr><th>#</th><th>Full Name</th><th>Date of Birth</th><th>Passport No.</th><th>Nationality</th></tr></thead>
+        <tbody>${(c.passengers||[]).length
+          ? (c.passengers||[]).map((p,i)=>`<tr><td>${i+1}</td><td><b>${x(p.fullName)||'—'}</b></td><td>${fmtD(p.dob)}</td><td style="font-family:monospace;">${x(p.passport)||'—'}</td><td>${x(p.nationality)||'—'}</td></tr>`).join('')
+          : '<tr><td colspan="5" style="text-align:center;color:#9ca3af;">No passengers listed</td></tr>'
+        }</tbody>
+      </table>
+    </div>
+
+    <div class="doc-sec">
+      <div class="doc-sec-h">Departure Information</div><div class="doc-sec-bar"></div>
+      <div class="doc-kv"><span class="doc-kv-l">FBO / Terminal:</span><span class="doc-kv-v">${x(c.depFboName)||'—'}</span></div>
+      <div class="doc-kv"><span class="doc-kv-l">Address:</span><span class="doc-kv-v">${x(c.depFboAddress)||'—'}</span></div>
+      <div class="doc-kv"><span class="doc-kv-l">Parking:</span><span class="doc-kv-v">${x(c.parkingInstructions)||'Please refer to FBO instructions'}</span></div>
+      <div class="doc-kv"><span class="doc-kv-l">Arrival Note:</span><span class="doc-kv-v">Please arrive at least 15 minutes before scheduled departure</span></div>
+    </div>
+
+    <div class="doc-sec">
+      <div class="doc-sec-h">Arrival Information</div><div class="doc-sec-bar"></div>
+      <div class="doc-kv"><span class="doc-kv-l">FBO / Terminal:</span><span class="doc-kv-v">${x(c.arrFboName)||'—'}</span></div>
+      <div class="doc-kv"><span class="doc-kv-l">Address:</span><span class="doc-kv-v">${x(c.arrFboAddress)||'—'}</span></div>
+      <div class="doc-kv"><span class="doc-kv-l">Ground Transfer:</span><span class="doc-kv-v">${x(c.groundTransfer)||'Not arranged'}</span></div>
+    </div>
+
+    <div class="doc-sec">
+      <div class="doc-sec-h">Catering &amp; Services</div><div class="doc-sec-bar"></div>
+      <p style="font-size:.82rem;color:#374151;"><b>Catering:</b> ${catL}</p>
+      ${c.cateringNotes?`<p style="font-size:.82rem;color:#374151;margin-top:4px;"><b>Notes:</b> ${x(c.cateringNotes)}</p>`:''}
+      ${c.specialRequests?`<p style="font-size:.82rem;color:#374151;margin-top:4px;"><b>Special Requests:</b> ${x(c.specialRequests)}</p>`:''}
+    </div>
+
+    <div class="doc-sec">
+      <div class="doc-sec-h">Payment Summary</div><div class="doc-sec-bar"></div>
+      <table class="doc-tbl"><tbody>
+        <tr><td>Amount Paid</td><td>${fmtM(c.amountPaid,c.currency)}</td></tr>
+        <tr><td>Payment Method</td><td>${x(c.paymentMethod)||'—'}</td></tr>
+        <tr><td>Payment Reference</td><td>${x(c.paymentRef)||'—'}</td></tr>
+        <tr><td>Payment Status</td><td><b>${(c.paymentStatus||'').toUpperCase()}</b></td></tr>
+      </tbody></table>
+    </div>
+
+    <div class="doc-sec">
+      <div class="doc-sec-h">Important Information</div><div class="doc-sec-bar"></div>
+      <ul class="doc-bullets">
+        ${['Please ensure all passengers carry a valid passport or travel document. Passport validity requirements may vary by destination.',
+           'Passengers are requested to arrive at the FBO at least 15 minutes prior to the scheduled departure time to complete any formalities.',
+           'TisaJets reserves the right to reschedule or cancel flights due to adverse weather conditions, technical requirements, or other safety concerns. We will notify you promptly should any changes be required.',
+           'For any last-minute changes or queries, please contact your TisaJets representative immediately: Elad Yanukashvili, +32 485 31 33 91.'
+        ].map(b=>`<li><span class="doc-dash">—</span><span>${b}</span></li>`).join('')}
+      </ul>
+    </div>
+
+    <div class="doc-sec">
+      <div class="doc-sec-h">From TisaJets</div><div class="doc-sec-bar"></div>
+      <p style="font-size:.82rem;color:#374151;margin-bottom:12px;">We look forward to welcoming you on board. Have a pleasant flight.</p>
+      <p style="font-size:.75rem;color:#9ca3af;">Warm regards,</p>
+      <p style="font-size:1rem;font-weight:700;color:#C5920D;margin-top:4px;">TisaJets BV</p>
+    </div>
+
+    ${c.additionalNotes?`<div class="doc-sec">
+      <div class="doc-sec-h">Additional Notes</div><div class="doc-sec-bar"></div>
+      <p style="font-size:.82rem;color:#374151;">${x(c.additionalNotes)}</p>
+    </div>`:''}
+
+    <div class="doc-footer-ln">TisaJets BV · Appelmansstraat 1, 2018 Antwerp, Belgium · info@tisajets.com · +32 485 31 33 91 · tisajets.com</div>
+  </div>`
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PDF
+═══════════════════════════════════════════════════════════════ */
+function pdfById(id) { const c = load().find(c=>c.id===id); if (c) genPDF(c) }
+
+function genPDF(c) {
+  const {jsPDF} = window.jspdf
+  const doc = new jsPDF({unit:'mm',format:'a4',orientation:'portrait'})
+  const NAVY=[15,24,53], GOLD=[197,146,13], WHITE=[255,255,255], DK=[51,51,51], LG=[248,248,248]
+  const PW=doc.internal.pageSize.getWidth(), PH=doc.internal.pageSize.getHeight()
+  const ML=18, MR=18, CW=PW-ML-MR
+  let y=0
+
+  // Header
+  doc.setFillColor(...NAVY); doc.rect(0,0,PW,38,'F')
+  doc.setFont('helvetica','bold'); doc.setFontSize(22); doc.setTextColor(...GOLD)
+  doc.text('TISAJETS',ML,16)
+  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...WHITE)
+  doc.text('Private Aviation',ML,22)
+  const cLines=['TisaJets BV · Appelmansstraat 1, 2018 Antwerp, Belgium','info@tisajets.com · +32 485 31 33 91 · tisajets.com']
+  doc.setFontSize(7.5); doc.setTextColor(...WHITE)
+  cLines.forEach((l,i)=>doc.text(l,PW-MR-doc.getTextWidth(l),16+i*6))
+  y=38; doc.setDrawColor(...GOLD); doc.setLineWidth(0.8); doc.line(0,y,PW,y); y+=8
+
+  // Title
+  doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(...NAVY)
+  const tw='FLIGHT CONFIRMATION', tl=doc.getTextWidth(tw)
+  doc.text(tw,(PW-tl)/2,y); y+=2
+  doc.setDrawColor(...GOLD); doc.setLineWidth(0.6)
+  doc.line((PW-tl)/2,y,(PW+tl)/2,y); y+=6
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(...DK)
+  doc.text('Ref: '+(c.ref||''),ML,y)
+  const dt='Date: '+fmtD(c.date); doc.text(dt,PW-MR-doc.getTextWidth(dt),y)
+  y+=3; doc.setDrawColor(...GOLD); doc.setLineWidth(0.4); doc.line(ML,y,PW-MR,y); y+=7
+
+  const addFt=()=>{
+    const fy=PH-10; doc.setDrawColor(...GOLD); doc.setLineWidth(0.4); doc.line(ML,fy-4,PW-MR,fy-4)
+    doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(...DK)
+    const ft='TisaJets BV · Appelmansstraat 1, 2018 Antwerp, Belgium · info@tisajets.com · +32 485 31 33 91 · tisajets.com'
+    doc.text(ft,(PW-doc.getTextWidth(ft))/2,fy)
+  }
+  addFt()
+
+  const chk=(n=20)=>{ if(y+n>PH-18){doc.addPage();y=20;addFt()} }
+  const secH=title=>{ chk(14); doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(...NAVY); doc.text(title,ML,y); y+=1.5; doc.setDrawColor(...GOLD); doc.setLineWidth(0.4); doc.line(ML,y,ML+doc.getTextWidth(title)+2,y); y+=5 }
+  const body=(txt,ind=0)=>{ doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(...DK); doc.splitTextToSize(txt,CW-ind).forEach(l=>{chk();doc.text(l,ML+ind,y);y+=5}) }
+  const kvRow=(label,val)=>{
+    doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(...NAVY); doc.text(label+':',ML,y)
+    doc.setFont('helvetica','normal'); doc.setTextColor(...DK)
+    const vl=doc.splitTextToSize(val,CW-50); doc.text(vl[0]||'',ML+50,y); y+=5
+    for(let i=1;i<vl.length;i++){chk();doc.text(vl[i],ML+50,y);y+=5}
+  }
+  const at=(rows,head,cs={})=>{
+    doc.autoTable({startY:y,head:[head],body:rows,margin:{left:ML,right:MR},
+      headStyles:{fillColor:NAVY,textColor:WHITE,fontSize:8.5,fontStyle:'bold'},
+      bodyStyles:{fontSize:8.5,textColor:DK},alternateRowStyles:{fillColor:LG},
+      columnStyles:cs,tableWidth:CW,theme:'grid'})
+    y=doc.lastAutoTable.finalY+7
+  }
+
+  // Section 1
+  secH('Dear '+(c.clientName||'Valued Client')+',')
+  body('Thank you for choosing TisaJets for your upcoming journey. We are delighted to confirm your private flight booking and provide you with all the details you need for a seamless travel experience. Please review the information below carefully and do not hesitate to contact us should you require any amendments or have any questions.')
+  y+=2
+
+  // Section 2: Flight
+  secH('Flight Details')
+  at([
+    ['Route',`${c.routeFrom||'—'} → ${c.routeTo||'—'}`],
+    ['Flight Date',fmtD(c.flightDate)],
+    ['Departure Time',c.depTime||'—'],
+    ['Estimated Arrival',c.arrTime||'—'],
+    ['Flight Duration',c.flightDuration||'—'],
+    ['Aircraft',[c.aircraft,c.registration].filter(Boolean).join(' · ')||'—'],
+  ],['Field','Details'],{0:{fontStyle:'bold',cellWidth:50}})
+
+  // Section 3: Passengers
+  chk(20); secH('Passenger Manifest')
+  const pr=(c.passengers||[]).map((p,i)=>[String(i+1),p.fullName||'—',fmtD(p.dob),p.passport||'—',p.nationality||'—'])
+  at(pr.length?pr:[['—','—','—','—','—']],['#','Full Name','Date of Birth','Passport No.','Nationality'],{0:{cellWidth:10}})
+
+  // Section 4: Departure
+  chk(30); secH('Departure Information')
+  kvRow('FBO / Terminal',c.depFboName||'—'); kvRow('Address',c.depFboAddress||'—')
+  kvRow('Parking',c.parkingInstructions||'Please refer to FBO instructions')
+  kvRow('Arrival Note','Please arrive at least 15 minutes before scheduled departure'); y+=2
+
+  // Section 5: Arrival
+  chk(25); secH('Arrival Information')
+  kvRow('FBO / Terminal',c.arrFboName||'—'); kvRow('Address',c.arrFboAddress||'—')
+  kvRow('Ground Transfer',c.groundTransfer||'Not arranged'); y+=2
+
+  // Section 6: Catering
+  chk(20); secH('Catering & Services')
+  const catL=c.catering==='standard'?'Standard Catering':c.catering==='premium'?'Premium Catering':'No Catering Selected'
+  body('Catering: '+catL)
+  if(c.cateringNotes) body('Notes: '+c.cateringNotes)
+  if(c.specialRequests) body('Special Requests: '+c.specialRequests)
+  y+=2
+
+  // Section 7: Payment
+  chk(25); secH('Payment Summary')
+  at([
+    ['Amount Paid',fmtM(c.amountPaid,c.currency)],
+    ['Payment Method',c.paymentMethod||'—'],
+    ['Payment Reference',c.paymentRef||'—'],
+    ['Payment Status',(c.paymentStatus||'').toUpperCase()],
+  ],['Item','Details'],{0:{fontStyle:'bold',cellWidth:55}})
+
+  // Section 8: Important
+  chk(35); secH('Important Information')
+  ;['Please ensure all passengers carry a valid passport or travel document. Passport validity requirements may vary by destination.',
+    'Passengers are requested to arrive at the FBO at least 15 minutes prior to the scheduled departure time to complete any formalities.',
+    'TisaJets reserves the right to reschedule or cancel flights due to adverse weather conditions, technical requirements, or other safety concerns. We will notify you promptly should any changes be required.',
+    'For any last-minute changes or queries, please contact your TisaJets representative immediately: Elad Yanukashvili, +32 485 31 33 91.'
+  ].forEach(b=>{
+    chk(12)
+    doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(...NAVY); doc.text('-',ML,y)
+    doc.setFont('helvetica','normal'); doc.setTextColor(...DK)
+    doc.splitTextToSize(b,CW-6).forEach(l=>{chk();doc.text(l,ML+6,y);y+=5}); y+=1
+  })
+  y+=3
+
+  // Section 9: Sign off
+  chk(25); secH('From TisaJets')
+  body('We look forward to welcoming you on board. Have a pleasant flight.')
+  y+=3; doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(...NAVY); doc.text('Warm regards,',ML,y)
+  y+=5; doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...GOLD); doc.text('TisaJets BV',ML,y)
+
+  if (c.additionalNotes) { y+=10; chk(20); secH('Additional Notes'); body(c.additionalNotes) }
+
+  doc.save(`${c.ref||'TJ'}_${(c.clientName||'Client').replace(/[^a-zA-Z0-9]/g,'_')}_FlightConfirmation.pdf`)
+  toast('PDF downloaded!')
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════════════════════ */
+function x(s) {
+  if (s===undefined||s===null) return ''
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+}
+function fmtD(s) {
+  if (!s) return '—'
+  try { const d=new Date(s.length===10?s+'T00:00:00':s); return d.toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'}) }
+  catch { return s }
+}
+function fmtM(n,cur) {
+  return (cur||'EUR')+' '+(parseFloat(n)||0).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2})
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════════ */
+if (sessionStorage.getItem('tj_auth')==='1') {
+  document.getElementById('login-screen').style.display='none'
+  document.getElementById('app').style.display='block'
+  renderDash()
+} else {
+  document.getElementById('pw').focus()
+}
+</script>
+</body>
+</html>

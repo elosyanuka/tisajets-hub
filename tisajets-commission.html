@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TisaJets — Commission Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0F1835;
+  --navy-l: #1a2647;
+  --gold: #C5920D;
+  --white: #fff;
+  --bg: #F8F9FC;
+  --border: #e5e7eb;
+  --text: #1a1a2e;
+  --text-l: #6b7280;
+  --muted: #9ca3af;
+  --success: #059669;
+  --danger: #dc2626;
+  --success-bg: #ecfdf5;
+  --danger-bg: #fef2f2;
+  --t: all .15s ease;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Poppins', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+
+/* SCREENS */
+.screen { display: none; min-height: 100vh; }
+.screen.active { display: block; }
+#screen-login { align-items: center; justify-content: center; background: linear-gradient(135deg, var(--navy) 0%, var(--navy-l) 100%); }
+#screen-login.active { display: flex; }
+
+/* LOGIN */
+.login-box { background: white; border-radius: 20px; padding: 48px; width: 100%; max-width: 400px; box-shadow: 0 25px 60px rgba(0,0,0,.3); }
+.login-logo { text-align: center; margin-bottom: 32px; }
+.login-logo h1 { font-size: 28px; font-weight: 700; color: var(--navy); letter-spacing: -.5px; }
+.login-logo h1 span { color: var(--gold); }
+.login-logo small { display: block; color: var(--text-l); font-size: 13px; margin-top: 4px; }
+.login-field { margin-bottom: 16px; }
+.login-field label { display: block; font-size: 11px; font-weight: 600; color: var(--text-l); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px; }
+.login-field input { width: 100%; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 14px; font-family: inherit; color: var(--text); transition: var(--t); }
+.login-field input:focus { outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(15,24,53,.1); }
+.login-btn { width: 100%; padding: 13px; background: var(--navy); color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; transition: var(--t); margin-top: 8px; }
+.login-btn:hover { background: var(--navy-l); }
+.login-err { color: var(--danger); font-size: 12px; margin-top: 10px; text-align: center; display: none; }
+
+/* TOPBAR */
+.topbar { background: var(--navy); color: white; height: 56px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.topbar-brand { font-size: 17px; font-weight: 700; }
+.topbar-brand span { color: var(--gold); }
+.topbar-divider { width: 1px; height: 18px; background: rgba(255,255,255,.2); }
+.topbar-subtitle { font-size: 12px; color: rgba(255,255,255,.5); }
+.topbar-right { display: flex; align-items: center; gap: 8px; }
+.gold-rule { height: 2px; background: var(--gold); }
+
+/* NAV TABS */
+.nav-tabs { background: white; border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; }
+.nav-tab { padding: 14px 20px; font-size: 13px; font-weight: 500; color: var(--text-l); cursor: pointer; border-bottom: 2px solid transparent; transition: var(--t); white-space: nowrap; }
+.nav-tab:hover { color: var(--text); }
+.nav-tab.active { color: var(--navy); border-bottom-color: var(--gold); font-weight: 600; }
+
+/* CONTENT */
+.content { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+/* BUTTONS */
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; transition: var(--t); }
+.btn-navy { background: var(--navy); color: white; }
+.btn-navy:hover { background: var(--navy-l); }
+.btn-gold { background: var(--gold); color: white; }
+.btn-gold:hover { filter: brightness(.9); }
+.btn-outline { background: white; color: var(--text); border: 1.5px solid var(--border); }
+.btn-outline:hover { border-color: var(--navy); color: var(--navy); }
+.btn-danger-soft { background: var(--danger-bg); color: var(--danger); border: 1.5px solid #fecaca; }
+.btn-danger-soft:hover { background: #fee2e2; }
+.btn-sm { padding: 7px 12px; font-size: 12px; }
+
+/* CALC LAYOUT */
+.calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+@media (max-width: 920px) { .calc-grid { grid-template-columns: 1fr; } }
+
+/* CARDS */
+.card { background: white; border-radius: 12px; border: 1px solid var(--border); padding: 24px; }
+.card + .card { margin-top: 20px; }
+.card-title { font-size: 10px; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 18px; }
+
+/* FIELDS */
+.field { margin-bottom: 14px; }
+.field:last-child { margin-bottom: 0; }
+.field label { display: block; font-size: 11px; font-weight: 600; color: var(--text-l); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .4px; }
+.field input, .field select { width: 100%; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit; color: var(--text); background: white; transition: var(--t); }
+.field input:focus, .field select:focus { outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(15,24,53,.08); }
+.field-row { display: grid; gap: 12px; }
+.field-row.cols-2 { grid-template-columns: 1fr 1fr; }
+
+/* TOGGLE */
+.toggle-wrap { display: flex; align-items: center; gap: 10px; }
+.toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; inset: 0; background: var(--border); border-radius: 24px; cursor: pointer; transition: var(--t); }
+.toggle-slider:before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: var(--t); box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+.toggle input:checked + .toggle-slider { background: var(--gold); }
+.toggle input:checked + .toggle-slider:before { transform: translateX(20px); }
+.toggle-label { font-size: 13px; font-weight: 500; }
+
+/* SLIDER */
+.slider-wrap { display: flex; align-items: center; gap: 10px; }
+.slider-wrap input[type=range] { flex: 1; height: 4px; accent-color: var(--navy); cursor: pointer; }
+.slider-num { width: 60px; flex-shrink: 0; padding: 7px 8px; border: 1.5px solid var(--border); border-radius: 7px; font-size: 13px; font-family: inherit; text-align: center; color: var(--text); }
+.slider-num:focus { outline: none; border-color: var(--navy); }
+
+/* KEY METRICS */
+.key-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.metric-box { border-radius: 10px; padding: 16px 12px; text-align: center; }
+.metric-box.pos { background: var(--success-bg); border: 1.5px solid #a7f3d0; }
+.metric-box.neg { background: var(--danger-bg); border: 1.5px solid #fecaca; }
+.metric-box .m-label { display: block; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; margin-bottom: 6px; }
+.metric-box.pos .m-label { color: var(--success); }
+.metric-box.neg .m-label { color: var(--danger); }
+.metric-box .m-val { font-size: 20px; font-weight: 700; line-height: 1.2; }
+.metric-box.pos .m-val { color: var(--success); }
+.metric-box.neg .m-val { color: var(--danger); }
+.metric-box .m-sub { font-size: 11px; display: block; margin-top: 3px; }
+.metric-box.pos .m-sub { color: #6ee7b7; }
+.metric-box.neg .m-sub { color: #fca5a5; }
+
+/* RESULTS BREAKDOWN */
+.result-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--bg); }
+.result-row:last-child { border-bottom: none; }
+.r-label { font-size: 12px; color: var(--text-l); }
+.r-val { font-size: 13px; font-weight: 600; }
+
+/* QUICK COMPARE */
+.compare-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.compare-table th { padding: 9px 10px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--text-l); border-bottom: 2px solid var(--border); white-space: nowrap; }
+.compare-table td { padding: 9px 10px; border-bottom: 1px solid var(--bg); }
+.compare-table tr.current td { background: rgba(197,146,13,.06); font-weight: 600; }
+.compare-table tr:hover td { background: var(--bg); }
+.c-pos { color: var(--success); font-weight: 600; }
+.c-neg { color: var(--danger); font-weight: 600; }
+
+/* CALC ACTIONS */
+.calc-actions { display: flex; gap: 12px; margin-top: 20px; }
+
+/* SUMMARY BAR */
+.summary-bar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 24px; }
+@media (max-width: 800px) { .summary-bar { grid-template-columns: repeat(2, 1fr); } }
+.summary-item { background: white; border-radius: 10px; border: 1px solid var(--border); padding: 16px; }
+.summary-item label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--text-l); margin-bottom: 6px; }
+.summary-item .s-val { font-size: 20px; font-weight: 700; color: var(--navy); }
+
+/* FILTERS */
+.filters { display: flex; gap: 10px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+.search-input { padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit; width: 220px; transition: var(--t); }
+.search-input:focus { outline: none; border-color: var(--navy); }
+.filter-sel { padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit; background: white; cursor: pointer; }
+
+/* LOG TABLE */
+.table-wrap { background: white; border-radius: 12px; border: 1px solid var(--border); overflow-x: auto; }
+.log-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 1100px; }
+.log-table th { padding: 11px 10px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--text-l); border-bottom: 2px solid var(--border); white-space: nowrap; background: white; }
+.log-table td { padding: 10px 10px; border-bottom: 1px solid var(--bg); vertical-align: middle; }
+.log-table tr:last-child td { border-bottom: none; }
+.log-table tr:hover td { background: var(--bg); }
+.ref-badge { background: rgba(15,24,53,.08); color: var(--navy); padding: 3px 8px; border-radius: 5px; font-weight: 700; font-size: 11px; white-space: nowrap; }
+.status-sel { padding: 4px 8px; border: 1.5px solid var(--border); border-radius: 6px; font-size: 11px; font-family: inherit; background: white; cursor: pointer; }
+.s-draft     { color: var(--text-l); border-color: var(--muted); }
+.s-quoted    { color: #2563eb; border-color: #93c5fd; }
+.s-confirmed { color: var(--success); border-color: #6ee7b7; }
+.s-completed { color: var(--gold); border-color: var(--gold); }
+.s-cancelled { color: var(--danger); border-color: #fca5a5; }
+.del-btn { opacity: 0; transition: var(--t); }
+tr:hover .del-btn { opacity: 1; }
+.empty-state { text-align: center; padding: 60px 20px; color: var(--text-l); }
+.empty-state h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; color: var(--text); }
+
+/* SYNC PILL */
+.sync-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; cursor: pointer; transition: var(--t); }
+.sync-pill.local  { background: rgba(255,255,255,.12); color: rgba(255,255,255,.6); }
+.sync-pill.synced { background: rgba(52,211,153,.2); color: #6ee7b7; }
+.sync-pill.error  { background: rgba(252,165,165,.2); color: #fca5a5; }
+.sync-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.sync-pill.local .sync-dot  { background: rgba(255,255,255,.4); }
+.sync-pill.synced .sync-dot { background: #34d399; }
+.sync-pill.error .sync-dot  { background: #f87171; }
+
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay.hidden { display: none; }
+.modal { background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 460px; box-shadow: 0 25px 60px rgba(0,0,0,.25); }
+.modal h2 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+.modal p { font-size: 13px; color: var(--text-l); margin-bottom: 20px; }
+.modal-field { margin-bottom: 14px; }
+.modal-field label { display: block; font-size: 11px; font-weight: 600; color: var(--text-l); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .4px; }
+.modal-field input { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit; transition: var(--t); }
+.modal-field input:focus { outline: none; border-color: var(--navy); }
+.modal-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; flex-wrap: wrap; }
+.modal-err { color: var(--danger); font-size: 12px; margin-top: 12px; display: none; }
+
+/* TOAST */
+.toast-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 999; display: flex; flex-direction: column; gap: 8px; }
+.toast { background: #1f2937; color: white; padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 500; box-shadow: 0 8px 24px rgba(0,0,0,.2); animation: slideIn .2s ease; max-width: 320px; }
+.toast.success { background: #065f46; }
+.toast.error   { background: #991b1b; }
+@keyframes slideIn  { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes slideOut { from { opacity: 1; } to { transform: translateX(40px); opacity: 0; } }
+
+.page { display: none; }
+.page.active { display: block; }
+.mt20 { margin-top: 20px; }
+.spinner { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(255,255,255,.3); border-top-color: white; border-radius: 50%; animation: spin .6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ─────────────────────────────────────────────────────── -->
+<div id="screen-login" class="screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <h1>Tisa<span>Jets</span></h1>
+      <small>Commission Calculator</small>
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="login-pw" placeholder="Enter password" autocomplete="current-password">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Sign In</button>
+    <div class="login-err" id="login-err">Incorrect password. Try again.</div>
+  </div>
+</div>
+
+<!-- ── APP ───────────────────────────────────────────────────────── -->
+<div id="screen-app" class="screen">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-brand">Tisa<span>Jets</span></span>
+      <div class="topbar-divider"></div>
+      <span class="topbar-subtitle">Commission Calculator</span>
+    </div>
+    <div class="topbar-right">
+      <div class="sync-pill local" id="sync-pill" onclick="openSyncModal()">
+        <div class="sync-dot"></div>
+        <span id="sync-label">Local only</span>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="doLogout()"
+        style="color:rgba(255,255,255,.65);border-color:rgba(255,255,255,.2);background:transparent">Logout</button>
+    </div>
+  </div>
+  <div class="gold-rule"></div>
+
+  <div class="nav-tabs">
+    <div class="nav-tab active" id="tab-calculator" onclick="showPage('calculator',this)">Calculator</div>
+    <div class="nav-tab" id="tab-deallog"    onclick="showPage('deallog',this)">Deal Log</div>
+  </div>
+
+  <!-- ── CALCULATOR PAGE ── -->
+  <div id="page-calculator" class="page active">
+    <div class="content">
+      <div class="calc-grid">
+
+        <!-- LEFT: INPUTS -->
+        <div>
+          <div class="card">
+            <div class="card-title">Flight Details</div>
+            <div class="field-row cols-2">
+              <div class="field">
+                <label>Client Name</label>
+                <input type="text" id="f-client" placeholder="e.g. John Smith" oninput="calc()">
+              </div>
+              <div class="field">
+                <label>Route</label>
+                <input type="text" id="f-route" placeholder="Brussels → Nice" oninput="calc()">
+              </div>
+            </div>
+            <div class="field-row cols-2">
+              <div class="field">
+                <label>Date</label>
+                <input type="date" id="f-date" oninput="calc()">
+              </div>
+              <div class="field">
+                <label>Aircraft Type</label>
+                <input type="text" id="f-aircraft" placeholder="e.g. Phenom 300" oninput="calc()">
+              </div>
+            </div>
+            <div class="field">
+              <label>Passengers</label>
+              <input type="number" id="f-pax" value="4" min="1" oninput="calc()">
+            </div>
+          </div>
+
+          <div class="card mt20">
+            <div class="card-title">Pricing</div>
+            <div class="field-row cols-2">
+              <div class="field">
+                <label>Operator Price (€)</label>
+                <input type="number" id="f-operator" placeholder="0" oninput="calc()">
+              </div>
+              <div class="field">
+                <label>Selling Price (€)</label>
+                <input type="number" id="f-selling" placeholder="0" oninput="calc()">
+              </div>
+            </div>
+            <div class="field">
+              <label>VAT Rate</label>
+              <select id="f-vat" onchange="calc()">
+                <option value="0">0% — Exempt</option>
+                <option value="0.06">6%</option>
+                <option value="0.21">21%</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Referral Commission</label>
+              <div class="slider-wrap">
+                <input type="range" id="f-ref-slider" min="0" max="50" value="10" step="1"
+                  oninput="syncRef('slider')">
+                <input type="number" class="slider-num" id="f-ref" value="10" min="0" max="100"
+                  oninput="syncRef('input')">
+                <span style="font-size:13px;color:var(--text-l)">%</span>
+              </div>
+            </div>
+            <div class="field-row cols-2" style="margin-top:14px">
+              <div class="field">
+                <label>Corporate Tax (%)</label>
+                <input type="number" id="f-tax" value="20" min="0" max="100" oninput="calc()">
+              </div>
+              <div class="field" style="display:flex;align-items:flex-end;padding-bottom:3px">
+                <div>
+                  <label style="display:block;font-size:11px;font-weight:600;color:var(--text-l);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px">Stripe Payment</label>
+                  <div class="toggle-wrap">
+                    <label class="toggle">
+                      <input type="checkbox" id="f-stripe" onchange="calc()">
+                      <div class="toggle-slider"></div>
+                    </label>
+                    <span class="toggle-label" id="stripe-label">No</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="calc-actions">
+            <button class="btn btn-gold" onclick="saveDeal()" id="save-btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                <polyline points="17 21 17 13 7 13 7 21"/>
+                <polyline points="7 3 7 8 15 8"/>
+              </svg>
+              Save to Deal Log
+            </button>
+            <button class="btn btn-outline" onclick="resetCalc()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="1 4 1 10 7 10"/>
+                <path d="M3.51 15a9 9 0 1 0 .49-3.61"/>
+              </svg>
+              Reset
+            </button>
+          </div>
+        </div>
+
+        <!-- RIGHT: RESULTS -->
+        <div>
+          <div class="key-metrics">
+            <div class="metric-box pos" id="m-gross">
+              <span class="m-label">Gross Margin</span>
+              <div class="m-val" id="m-gross-val">€0</div>
+              <span class="m-sub" id="m-gross-pct">0.0%</span>
+            </div>
+            <div class="metric-box pos" id="m-net">
+              <span class="m-label">Net Before Tax</span>
+              <div class="m-val" id="m-net-val">€0</div>
+              <span class="m-sub" id="m-net-pct">0.0%</span>
+            </div>
+            <div class="metric-box pos" id="m-profit">
+              <span class="m-label">Net Profit</span>
+              <div class="m-val" id="m-profit-val">€0</div>
+              <span class="m-sub" id="m-profit-pct">0.0%</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Full Breakdown</div>
+            <div class="result-row"><span class="r-label">Gross Margin</span><span class="r-val" id="r-gross">—</span></div>
+            <div class="result-row"><span class="r-label">Margin %</span><span class="r-val" id="r-margin-pct">—</span></div>
+            <div class="result-row"><span class="r-label">VAT Amount</span><span class="r-val" id="r-vat">—</span></div>
+            <div class="result-row"><span class="r-label">Client Total incl. VAT</span><span class="r-val" id="r-total">—</span></div>
+            <div class="result-row"><span class="r-label">Price per Person</span><span class="r-val" id="r-ppp">—</span></div>
+            <div class="result-row"><span class="r-label">Price per Person incl. VAT</span><span class="r-val" id="r-ppp-vat">—</span></div>
+            <div class="result-row"><span class="r-label">Stripe Fee</span><span class="r-val" id="r-stripe">€0.00</span></div>
+            <div class="result-row"><span class="r-label">Referral Commission</span><span class="r-val" id="r-ref">—</span></div>
+            <div class="result-row"><span class="r-label">Net Margin Before Tax</span><span class="r-val" id="r-net">—</span></div>
+            <div class="result-row"><span class="r-label">Corporate Tax</span><span class="r-val" id="r-tax">—</span></div>
+            <div class="result-row" style="border-bottom:none">
+              <span class="r-label" style="font-weight:700;color:var(--text)">Net Profit After Tax</span>
+              <span class="r-val" style="font-size:16px;color:var(--navy)" id="r-profit">—</span>
+            </div>
+          </div>
+
+          <div class="card mt20">
+            <div class="card-title">Quick Compare — Price Scenarios</div>
+            <table class="compare-table">
+              <thead>
+                <tr>
+                  <th>Selling Price</th>
+                  <th>Gross Margin</th>
+                  <th>Margin %</th>
+                  <th>Per Person</th>
+                  <th>Net Profit</th>
+                </tr>
+              </thead>
+              <tbody id="compare-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DEAL LOG PAGE ── -->
+  <div id="page-deallog" class="page">
+    <div class="content">
+      <div class="summary-bar">
+        <div class="summary-item"><label>Total Deals</label><div class="s-val" id="s-deals">0</div></div>
+        <div class="summary-item"><label>Total Revenue</label><div class="s-val" id="s-revenue">€0</div></div>
+        <div class="summary-item"><label>Total Gross Margin</label><div class="s-val" id="s-gross">€0</div></div>
+        <div class="summary-item"><label>Total Net Profit</label><div class="s-val" id="s-profit">€0</div></div>
+        <div class="summary-item"><label>Avg. Margin %</label><div class="s-val" id="s-avg">0%</div></div>
+      </div>
+      <div class="filters">
+        <input type="text" class="search-input" id="log-search" placeholder="Search client or route…" oninput="renderLog()">
+        <select class="filter-sel" id="log-filter" onchange="renderLog()">
+          <option value="">All statuses</option>
+          <option value="draft">Draft</option>
+          <option value="quoted">Quoted</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+        <div style="margin-left:auto">
+          <button class="btn btn-outline btn-sm" onclick="syncPull(true)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="1 4 1 10 7 10"/>
+              <path d="M3.51 15a9 9 0 1 0 .49-3.61"/>
+            </svg>
+            Refresh
+          </button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="log-table">
+          <thead>
+            <tr>
+              <th>Ref</th><th>Date</th><th>Client</th><th>Route</th><th>Aircraft</th>
+              <th>Pax</th><th>Operator €</th><th>Selling €</th><th>Gross</th><th>Margin%</th>
+              <th>Stripe</th><th>Referral</th><th>Net Pre-Tax</th><th>Tax</th><th>Net Profit</th>
+              <th>Status</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="log-body"></tbody>
+        </table>
+        <div id="log-empty" class="empty-state" style="display:none">
+          <h3>No deals yet</h3>
+          <p>Use the Calculator tab to save your first deal.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SYNC MODAL ── -->
+<div class="modal-overlay hidden" id="sync-modal">
+  <div class="modal">
+    <h2>Google Sheets Sync</h2>
+    <p>Connect to a Google Apps Script web app to sync your deal log across devices.</p>
+    <div class="modal-field">
+      <label>Apps Script Web App URL</label>
+      <input type="url" id="sync-url" placeholder="https://script.google.com/macros/s/.../exec">
+    </div>
+    <div class="modal-field">
+      <label>Secret Token</label>
+      <input type="text" id="sync-secret" placeholder="Your shared secret">
+    </div>
+    <div class="modal-err" id="sync-err"></div>
+    <div class="modal-btns">
+      <button class="btn btn-danger-soft btn-sm" id="btn-disconnect" style="display:none" onclick="disconnectSync()">Disconnect</button>
+      <button class="btn btn-outline" onclick="closeSyncModal()">Cancel</button>
+      <button class="btn btn-navy" onclick="saveSync()"><span id="sync-btn-label">Save & Test</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ── DELETE MODAL ── -->
+<div class="modal-overlay hidden" id="del-modal">
+  <div class="modal">
+    <h2>Delete Deal?</h2>
+    <p id="del-msg">This cannot be undone.</p>
+    <div class="modal-btns">
+      <button class="btn btn-outline" onclick="document.getElementById('del-modal').classList.add('hidden')">Cancel</button>
+      <button class="btn btn-danger-soft" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toasts"></div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+const APP_PASSWORD = '3l2D2005'
+const AUTH_KEY     = 'tj_cc_auth'
+const DATA_KEY     = 'tj_cc_deals'
+const SYNC_KEY     = 'tj_cc_sync'
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let deals      = []
+let syncCfg    = { enabled: false, url: '', secret: '' }
+let deleteId   = null
+
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
+function doLogin() {
+  if (document.getElementById('login-pw').value === APP_PASSWORD) {
+    sessionStorage.setItem(AUTH_KEY, '1')
+    document.getElementById('login-err').style.display = 'none'
+    showScreen('app')
+    init()
+  } else {
+    document.getElementById('login-err').style.display = 'block'
+    document.getElementById('login-pw').value = ''
+    document.getElementById('login-pw').focus()
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem(AUTH_KEY)
+  showScreen('login')
+  document.getElementById('login-pw').value = ''
+}
+
+// ─── ROUTING ──────────────────────────────────────────────────────────────────
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
+  document.getElementById('screen-' + name).classList.add('active')
+}
+
+function showPage(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'))
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'))
+  document.getElementById('page-' + name).classList.add('active')
+  if (el) el.classList.add('active')
+  if (name === 'deallog') renderLog()
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+function init() {
+  deals   = JSON.parse(localStorage.getItem(DATA_KEY) || '[]')
+  syncCfg = JSON.parse(localStorage.getItem(SYNC_KEY) || '{"enabled":false,"url":"","secret":""}')
+  updateSyncPill()
+  calc()
+  if (syncCfg.enabled) syncPull(false)
+}
+
+// ─── CALCULATION ENGINE ───────────────────────────────────────────────────────
+function getInputs() {
+  return {
+    client:   document.getElementById('f-client').value.trim(),
+    route:    document.getElementById('f-route').value.trim(),
+    date:     document.getElementById('f-date').value,
+    aircraft: document.getElementById('f-aircraft').value.trim(),
+    pax:      Math.max(1, parseFloat(document.getElementById('f-pax').value) || 1),
+    operator: parseFloat(document.getElementById('f-operator').value) || 0,
+    selling:  parseFloat(document.getElementById('f-selling').value) || 0,
+    vat:      parseFloat(document.getElementById('f-vat').value) || 0,
+    refPct:   parseFloat(document.getElementById('f-ref').value) || 0,
+    taxPct:   parseFloat(document.getElementById('f-tax').value) || 0,
+    stripe:   document.getElementById('f-stripe').checked,
+  }
+}
+
+function calcFor(inp, sellingOverride) {
+  const sell    = sellingOverride ?? inp.selling
+  const gross   = sell - inp.operator
+  const mPct    = sell > 0 ? (gross / sell) * 100 : 0
+  const vatAmt  = sell * inp.vat
+  const total   = sell + vatAmt
+  const ppp     = sell / inp.pax
+  const pppVat  = total / inp.pax
+  const stripe  = inp.stripe ? sell * 0.015 + 0.25 : 0
+  const ref     = gross * (inp.refPct / 100)
+  const netPre  = gross - stripe - ref
+  const tax     = netPre > 0 ? netPre * (inp.taxPct / 100) : 0
+  const profit  = netPre - tax
+  return { sell, gross, mPct, vatAmt, total, ppp, pppVat, stripe, ref, netPre, tax, profit }
+}
+
+function calc() {
+  const inp = getInputs()
+  const r   = calcFor(inp)
+
+  document.getElementById('stripe-label').textContent = inp.stripe ? 'Yes' : 'No'
+
+  setMetric('m-gross',  r.gross,   r.mPct)
+  setMetric('m-net',    r.netPre,  inp.selling > 0 ? r.netPre  / inp.selling * 100 : 0)
+  setMetric('m-profit', r.profit,  inp.selling > 0 ? r.profit  / inp.selling * 100 : 0)
+
+  document.getElementById('r-gross').textContent      = fmt(r.gross)
+  document.getElementById('r-margin-pct').textContent = r.mPct.toFixed(1) + '%'
+  document.getElementById('r-vat').textContent        = fmt(r.vatAmt)
+  document.getElementById('r-total').textContent      = fmt(r.total)
+  document.getElementById('r-ppp').textContent        = fmt(r.ppp)
+  document.getElementById('r-ppp-vat').textContent    = fmt(r.pppVat)
+  document.getElementById('r-stripe').textContent     = inp.stripe ? fmt(r.stripe) : '€0.00'
+  document.getElementById('r-ref').textContent        = fmt(r.ref)
+  document.getElementById('r-net').textContent        = fmt(r.netPre)
+  document.getElementById('r-tax').textContent        = fmt(r.tax)
+  document.getElementById('r-profit').textContent     = fmt(r.profit)
+
+  // Quick compare
+  const rows = [0.85, 0.90, 0.95, 1.00, 1.05, 1.10, 1.15].map(pct => {
+    const cr = calcFor(inp, inp.selling * pct)
+    const isCur = pct === 1.00
+    return `<tr${isCur ? ' class="current"' : ''}>
+      <td>${fmt(cr.sell)}</td>
+      <td class="${cr.gross < 0 ? 'c-neg' : 'c-pos'}">${fmt(cr.gross)}</td>
+      <td>${cr.mPct.toFixed(1)}%</td>
+      <td>${fmt(cr.ppp)}</td>
+      <td class="${cr.profit < 0 ? 'c-neg' : 'c-pos'}">${fmt(cr.profit)}</td>
+    </tr>`
+  }).join('')
+  document.getElementById('compare-body').innerHTML = rows
+}
+
+function setMetric(id, val, pct) {
+  const box = document.getElementById(id)
+  const isNeg = val < 0
+  box.className = 'metric-box ' + (isNeg ? 'neg' : 'pos')
+  document.getElementById(id + '-val').textContent = (isNeg ? '−' : '') + '€' + Math.abs(val).toLocaleString('de-BE', {minimumFractionDigits: 0, maximumFractionDigits: 0})
+  document.getElementById(id + '-pct').textContent = pct.toFixed(1) + '%'
+}
+
+function syncRef(src) {
+  if (src === 'slider') document.getElementById('f-ref').value = document.getElementById('f-ref-slider').value
+  else document.getElementById('f-ref-slider').value = document.getElementById('f-ref').value
+  calc()
+}
+
+function resetCalc() {
+  ['f-client','f-route','f-aircraft'].forEach(id => document.getElementById(id).value = '')
+  document.getElementById('f-date').value     = ''
+  document.getElementById('f-pax').value      = '4'
+  document.getElementById('f-operator').value = ''
+  document.getElementById('f-selling').value  = ''
+  document.getElementById('f-vat').value      = '0'
+  document.getElementById('f-ref').value      = '10'
+  document.getElementById('f-ref-slider').value = '10'
+  document.getElementById('f-tax').value      = '20'
+  document.getElementById('f-stripe').checked = false
+  calc()
+}
+
+// ─── SAVE DEAL ────────────────────────────────────────────────────────────────
+async function saveDeal() {
+  const inp = getInputs()
+  const r   = calcFor(inp)
+  const deal = {
+    id:        crypto.randomUUID(),
+    ref:       'TJ-' + String(deals.length + 1).padStart(3, '0'),
+    date:      inp.date || today(),
+    client:    inp.client || 'Unknown',
+    route:     inp.route,
+    aircraft:  inp.aircraft,
+    pax:       inp.pax,
+    operator:  inp.operator,
+    selling:   inp.selling,
+    gross:     +r.gross.toFixed(2),
+    mPct:      +r.mPct.toFixed(2),
+    vatAmt:    +r.vatAmt.toFixed(2),
+    stripe:    +r.stripe.toFixed(2),
+    ref:       +r.ref.toFixed(2),
+    netPre:    +r.netPre.toFixed(2),
+    tax:       +r.tax.toFixed(2),
+    profit:    +r.profit.toFixed(2),
+    status:    'draft',
+    createdAt: new Date().toISOString(),
+  }
+  // deal.ref is set above but also overwritten — fix: store separately
+  const savedRef = 'TJ-' + String(deals.length + 1).padStart(3, '0')
+  deal.ref = savedRef
+  deals.unshift(deal)
+  persist()
+  toast('Deal saved as ' + savedRef, 'success')
+  if (syncCfg.enabled) {
+    try { await apiCall('POST', { action: 'upsert', table: 'deals', record: deal }) }
+    catch(e) { toast('Sync failed: ' + e.message, 'error') }
+  }
+}
+
+// ─── DEAL LOG ─────────────────────────────────────────────────────────────────
+function renderLog() {
+  const q  = document.getElementById('log-search').value.toLowerCase()
+  const st = document.getElementById('log-filter').value
+  const list = deals.filter(d => {
+    const okSearch = !q || (d.client||'').toLowerCase().includes(q) || (d.route||'').toLowerCase().includes(q)
+    const okStatus = !st || d.status === st
+    return okSearch && okStatus
+  })
+
+  // Summary (always over all deals)
+  document.getElementById('s-deals').textContent   = deals.length
+  document.getElementById('s-revenue').textContent = fmtK(sum(deals, 'selling'))
+  document.getElementById('s-gross').textContent   = fmtK(sum(deals, 'gross'))
+  document.getElementById('s-profit').textContent  = fmtK(sum(deals, 'profit'))
+  const avg = deals.length ? sum(deals, 'mPct') / deals.length : 0
+  document.getElementById('s-avg').textContent = avg.toFixed(1) + '%'
+
+  const tbody = document.getElementById('log-body')
+  const empty = document.getElementById('log-empty')
+  if (!list.length) {
+    tbody.innerHTML = ''
+    empty.style.display = 'block'
+    return
+  }
+  empty.style.display = 'none'
+
+  tbody.innerHTML = list.map(d => `<tr>
+    <td><span class="ref-badge">${esc(d.ref)}</span></td>
+    <td style="white-space:nowrap">${d.date||'—'}</td>
+    <td style="font-weight:500">${esc(d.client)}</td>
+    <td>${esc(d.route||'—')}</td>
+    <td>${esc(d.aircraft||'—')}</td>
+    <td>${d.pax}</td>
+    <td>${fmt(d.operator)}</td>
+    <td>${fmt(d.selling)}</td>
+    <td style="${d.gross<0?'color:var(--danger)':'color:var(--success)'};font-weight:600">${fmt(d.gross)}</td>
+    <td>${(d.mPct||0).toFixed(1)}%</td>
+    <td>${fmt(d.stripe)}</td>
+    <td>${fmt(d.ref)}</td>
+    <td style="${d.netPre<0?'color:var(--danger)':'color:var(--success)'}">${fmt(d.netPre)}</td>
+    <td>${fmt(d.tax)}</td>
+    <td style="${d.profit<0?'color:var(--danger)':'color:var(--success)'};font-weight:700">${fmt(d.profit)}</td>
+    <td>
+      <select class="status-sel s-${d.status}" onchange="updateStatus('${d.id}',this)">
+        <option value="draft"${d.status==='draft'?' selected':''}>Draft</option>
+        <option value="quoted"${d.status==='quoted'?' selected':''}>Quoted</option>
+        <option value="confirmed"${d.status==='confirmed'?' selected':''}>Confirmed</option>
+        <option value="completed"${d.status==='completed'?' selected':''}>Completed</option>
+        <option value="cancelled"${d.status==='cancelled'?' selected':''}>Cancelled</option>
+      </select>
+    </td>
+    <td>
+      <button class="btn btn-danger-soft btn-sm del-btn" onclick="askDelete('${d.id}','${esc(d.ref)}')">✕</button>
+    </td>
+  </tr>`).join('')
+}
+
+async function updateStatus(id, sel) {
+  const deal = deals.find(d => d.id === id)
+  if (!deal) return
+  deal.status = sel.value
+  sel.className = 'status-sel s-' + deal.status
+  persist()
+  if (syncCfg.enabled) {
+    try { await apiCall('POST', { action: 'upsert', table: 'deals', record: deal }) }
+    catch(e) { toast('Sync failed: ' + e.message, 'error') }
+  }
+}
+
+function askDelete(id, ref) {
+  deleteId = id
+  document.getElementById('del-msg').textContent = `Delete deal ${ref}? This cannot be undone.`
+  document.getElementById('del-modal').classList.remove('hidden')
+}
+
+async function confirmDelete() {
+  document.getElementById('del-modal').classList.add('hidden')
+  if (!deleteId) return
+  const deal = deals.find(d => d.id === deleteId)
+  deals = deals.filter(d => d.id !== deleteId)
+  persist()
+  renderLog()
+  toast('Deal deleted', 'success')
+  if (syncCfg.enabled && deal) {
+    try { await apiCall('POST', { action: 'delete', table: 'deals', id: deleteId }) }
+    catch(e) {}
+  }
+  deleteId = null
+}
+
+// ─── SYNC ─────────────────────────────────────────────────────────────────────
+function openSyncModal() {
+  document.getElementById('sync-url').value    = syncCfg.url || ''
+  document.getElementById('sync-secret').value = syncCfg.secret || ''
+  document.getElementById('sync-err').style.display = 'none'
+  document.getElementById('btn-disconnect').style.display = syncCfg.enabled ? 'inline-flex' : 'none'
+  document.getElementById('sync-modal').classList.remove('hidden')
+}
+
+function closeSyncModal() {
+  document.getElementById('sync-modal').classList.add('hidden')
+}
+
+async function saveSync() {
+  const url    = document.getElementById('sync-url').value.trim()
+  const secret = document.getElementById('sync-secret').value.trim()
+  const lbl    = document.getElementById('sync-btn-label')
+  const errEl  = document.getElementById('sync-err')
+  errEl.style.display = 'none'
+  if (!url || !secret) { showErr('Please enter both URL and secret.'); return }
+  lbl.innerHTML = '<span class="spinner"></span>'
+  try {
+    const res = await apiCall('GET', {}, { url, secret })
+    syncCfg = { enabled: true, url, secret }
+    localStorage.setItem(SYNC_KEY, JSON.stringify(syncCfg))
+    if (res.deals) mergeDeals(res.deals)
+    updateSyncPill()
+    closeSyncModal()
+    toast('Connected to Google Sheets', 'success')
+  } catch(e) {
+    showErr('Connection failed: ' + e.message)
+  } finally {
+    lbl.textContent = 'Save & Test'
+  }
+}
+
+function disconnectSync() {
+  syncCfg = { enabled: false, url: '', secret: '' }
+  localStorage.setItem(SYNC_KEY, JSON.stringify(syncCfg))
+  updateSyncPill()
+  closeSyncModal()
+  toast('Disconnected', 'success')
+}
+
+function showErr(msg) {
+  const el = document.getElementById('sync-err')
+  el.textContent = msg
+  el.style.display = 'block'
+}
+
+async function syncPull(showToast) {
+  if (!syncCfg.enabled) return
+  try {
+    const res = await apiCall('GET')
+    if (res.deals) mergeDeals(res.deals)
+    renderLog()
+    if (showToast) toast('Synced from Google Sheets', 'success')
+    updateSyncPill('synced')
+  } catch(e) {
+    updateSyncPill('error')
+    if (showToast) toast('Sync error: ' + e.message, 'error')
+  }
+}
+
+function mergeDeals(remote) {
+  const map = new Map(deals.map(d => [d.id, d]))
+  for (const row of remote) {
+    try {
+      const d = typeof row === 'string' ? JSON.parse(row) : row
+      if (d && d.id) map.set(d.id, d)
+    } catch(e) {}
+  }
+  deals = Array.from(map.values())
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+  persist()
+}
+
+async function apiCall(method, body, cfg) {
+  const c = cfg || syncCfg
+  if (!c.url) throw new Error('Not configured')
+  let url = c.url
+  const opts = { method, headers: { 'Content-Type': 'text/plain' } }
+  if (method === 'GET') {
+    url += (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(c.secret)
+  } else {
+    opts.body = JSON.stringify({ ...body, token: c.secret })
+  }
+  const res = await fetch(url, opts)
+  if (!res.ok) throw new Error('HTTP ' + res.status)
+  return res.json()
+}
+
+function updateSyncPill(state) {
+  const s   = state || (syncCfg.enabled ? 'synced' : 'local')
+  const pill = document.getElementById('sync-pill')
+  pill.className = 'sync-pill ' + s
+  document.getElementById('sync-label').textContent =
+    s === 'local' ? 'Local only' : s === 'synced' ? 'Synced' : 'Sync error'
+}
+
+// ─── PERSISTENCE ──────────────────────────────────────────────────────────────
+function persist() { localStorage.setItem(DATA_KEY, JSON.stringify(deals)) }
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+function fmt(v) {
+  v = parseFloat(v) || 0
+  return (v < 0 ? '−€' : '€') + Math.abs(v).toLocaleString('de-BE', {minimumFractionDigits:2,maximumFractionDigits:2})
+}
+function fmtK(v) {
+  if (Math.abs(v) >= 1000) return (v<0?'−€':'€') + (Math.abs(v)/1000).toFixed(1) + 'k'
+  return fmt(v)
+}
+function sum(arr, key) { return arr.reduce((a, d) => a + (parseFloat(d[key]) || 0), 0) }
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+}
+function today() { return new Date().toISOString().split('T')[0] }
+function toast(msg, type) {
+  const el = document.createElement('div')
+  el.className = 'toast ' + (type || '')
+  el.textContent = msg
+  document.getElementById('toasts').appendChild(el)
+  setTimeout(() => { el.style.animation = 'slideOut .2s ease forwards'; setTimeout(() => el.remove(), 200) }, 3000)
+}
+
+// ─── KEYBOARD ─────────────────────────────────────────────────────────────────
+document.getElementById('login-pw').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin() })
+
+// ─── BOOT ─────────────────────────────────────────────────────────────────────
+;(function() {
+  if (sessionStorage.getItem(AUTH_KEY) === '1') { showScreen('app'); init() }
+  else showScreen('login')
+})()
+</script>
+</body>
+</html>

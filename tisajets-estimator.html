@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TisaJets Flight Cost Estimator</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: 'Poppins', sans-serif; background: #f7f8fb; color: #101828; font-size: 13px; }
+
+.app { height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+
+/* ── HEADER ── */
+.page-header {
+  flex-shrink: 0; background: white; padding: 14px 24px;
+  border-bottom: 1px solid #e4e7ec; display: flex; align-items: center; gap: 12px;
+}
+.header-icon {
+  width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+  background: linear-gradient(135deg, #C5920D, #e8b020);
+  display: grid; place-items: center; font-size: 17px; color: white;
+}
+.header-title { font-size: 15px; font-weight: 700; color: #0F1835; }
+.header-sub  { font-size: 11px; color: #98a2b3; margin-top: 1px; }
+
+/* ── LAYOUT ── */
+.main { flex: 1; overflow: hidden; display: flex; }
+
+/* ── LEFT PANEL ── */
+.panel-left {
+  width: 340px; flex-shrink: 0; overflow-y: auto;
+  border-right: 1px solid #e4e7ec; background: white; padding: 20px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+.section-head { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #C5920D; margin-bottom: 10px; }
+
+/* ── AUTOCOMPLETE ── */
+.ac-field { position: relative; margin-bottom: 12px; }
+.ac-field:last-child { margin-bottom: 0; }
+.ac-label { font-size: 11px; font-weight: 600; color: #344054; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 5px; }
+.ac-input-wrap { position: relative; }
+.ac-input {
+  width: 100%; padding: 9px 12px 9px 34px; border: 1.5px solid #e4e7ec; border-radius: 8px;
+  font-size: 13px; font-family: inherit; outline: none; color: #101828; transition: border-color 0.15s;
+}
+.ac-input:focus { border-color: #C5920D; }
+.ac-input.has-value { border-color: #0F1835; background: #f9fafb; }
+.ac-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #98a2b3; pointer-events: none; }
+.ac-clear { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #98a2b3; cursor: pointer; font-size: 16px; line-height: 1; padding: 2px; display: none; }
+.ac-clear:hover { color: #344054; }
+.ac-input.has-value ~ .ac-clear { display: block; }
+.ac-dropdown {
+  position: absolute; left: 0; right: 0; top: calc(100% + 4px);
+  background: white; border: 1.5px solid #e4e7ec; border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 50; max-height: 280px; overflow-y: auto;
+}
+.ac-dropdown.hidden { display: none; }
+.ac-item {
+  display: flex; align-items: center; gap: 10px; padding: 9px 12px; cursor: pointer;
+  border-bottom: 1px solid #f0f1f3; transition: background 0.1s;
+}
+.ac-item:last-child { border-bottom: none; }
+.ac-item:hover, .ac-item.focused { background: #fef9ee; }
+.ac-item-icao { font-size: 13px; font-weight: 700; color: #0F1835; width: 40px; flex-shrink: 0; }
+.ac-item-iata { font-size: 11px; color: #98a2b3; flex-shrink: 0; width: 28px; }
+.ac-item-body { flex: 1; min-width: 0; }
+.ac-item-city { font-size: 12px; font-weight: 600; color: #101828; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ac-item-name { font-size: 10px; color: #98a2b3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tier-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.tier-0 { background: #9ca3af; }
+.tier-1 { background: #3b82f6; }
+.tier-2 { background: #f59e0b; }
+.tier-3 { background: #ef4444; }
+
+/* Swap button */
+.swap-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid #e4e7ec;
+  background: white; cursor: pointer; color: #667085; margin: 2px auto; transition: all 0.15s;
+  flex-shrink: 0;
+}
+.swap-btn:hover { border-color: #C5920D; color: #C5920D; background: #fef9ee; }
+
+/* Tier legend */
+.tier-legend { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+.tier-legend-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: #667085; }
+
+/* ── FORM FIELDS ── */
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 11px; font-weight: 600; color: #344054; text-transform: uppercase; letter-spacing: 0.5px; }
+.field input[type="number"], .field input[type="date"] {
+  padding: 9px 12px; border: 1.5px solid #e4e7ec; border-radius: 8px;
+  font-size: 13px; font-family: inherit; outline: none; color: #101828; background: white;
+  transition: border-color 0.15s; width: 100%;
+}
+.field input:focus { border-color: #C5920D; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* Return toggle */
+.toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 2px; }
+.toggle-label { font-size: 11px; font-weight: 600; color: #344054; text-transform: uppercase; letter-spacing: 0.5px; }
+.toggle-track {
+  width: 44px; height: 24px; border-radius: 12px; background: #e4e7ec;
+  position: relative; cursor: pointer; transition: background 0.2s; flex-shrink: 0;
+}
+.toggle-track.on { background: #0F1835; }
+.toggle-thumb {
+  width: 18px; height: 18px; border-radius: 50%; background: white;
+  position: absolute; top: 3px; left: 3px; transition: left 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.toggle-track.on .toggle-thumb { left: 23px; }
+.toggle-text { font-size: 12px; color: #667085; }
+
+/* Divider */
+.divider { height: 1px; background: #f0f1f3; }
+
+/* ── RIGHT PANEL ── */
+.panel-right { flex: 1; overflow-y: auto; padding: 20px; }
+
+/* ── EMPTY STATE ── */
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 300px; color: #98a2b3; text-align: center; gap: 12px; }
+.empty-icon { font-size: 48px; opacity: 0.4; }
+.empty-title { font-size: 15px; font-weight: 600; }
+.empty-sub { font-size: 12px; line-height: 1.6; max-width: 300px; }
+
+/* ── STAT CARDS ── */
+.stat-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+.stat-card {
+  background: white; border: 1px solid #e4e7ec; border-radius: 10px; padding: 14px 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.stat-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: #98a2b3; margin-bottom: 6px; }
+.stat-value { font-size: 20px; font-weight: 700; color: #0F1835; }
+.stat-unit  { font-size: 11px; color: #667085; margin-top: 2px; }
+.stat-card.seasonal .stat-value { color: #C5920D; }
+
+/* Route header */
+.route-header {
+  background: #0F1835; border-radius: 10px; padding: 14px 18px;
+  display: flex; align-items: center; gap: 12px; margin-bottom: 14px; color: white;
+}
+.route-airports { font-size: 14px; font-weight: 700; }
+.route-meta { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 2px; }
+.route-badge {
+  margin-left: auto; background: rgba(197,146,13,0.2); border: 1px solid #C5920D;
+  color: #C5920D; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px;
+}
+
+/* ── RESULTS TABLE ── */
+.results-card { background: white; border: 1px solid #e4e7ec; border-radius: 10px; overflow: hidden; margin-bottom: 14px; }
+.results-table { width: 100%; border-collapse: collapse; }
+.results-table th {
+  text-align: left; font-size: 10px; font-weight: 600; color: #667085;
+  text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 14px;
+  background: #f9fafb; border-bottom: 1px solid #e4e7ec; white-space: nowrap;
+}
+.results-table td { padding: 12px 14px; border-bottom: 1px solid #f0f1f3; vertical-align: middle; }
+.results-table tr:last-child td { border-bottom: none; }
+.results-table tr.recommended { background: #fef9ee; }
+.results-table tr.recommended td { border-color: rgba(197,146,13,0.15); }
+.ac-name { font-weight: 600; font-size: 13px; color: #101828; }
+.ac-ex   { font-size: 11px; color: #98a2b3; margin-top: 1px; }
+.price   { font-weight: 700; color: #101828; }
+.price-pp { font-size: 11px; color: #667085; font-weight: 400; }
+.rec-badge {
+  display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px;
+  background: #C5920D; color: white; font-size: 10px; font-weight: 700;
+  border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px;
+}
+
+/* ── EMPTY LEG ── */
+.empty-leg-card {
+  background: white; border: 1px solid #d1fadf; border-radius: 10px;
+  padding: 14px 18px; display: flex; align-items: center; gap: 14px; margin-bottom: 14px;
+}
+.el-badge {
+  background: #ecfdf3; color: #027a48; font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.5px; padding: 4px 10px; border-radius: 20px;
+  white-space: nowrap; flex-shrink: 0;
+}
+.el-label { font-size: 12px; color: #667085; margin-bottom: 2px; }
+.el-range { font-size: 15px; font-weight: 700; color: #027a48; }
+.el-saving { font-size: 11px; color: #98a2b3; margin-top: 1px; }
+
+/* ── NOTE ── */
+.estimate-note {
+  background: #f9fafb; border: 1px solid #f0f1f3; border-radius: 8px;
+  padding: 12px 16px; font-size: 11px; color: #667085; line-height: 1.7; margin-bottom: 14px;
+}
+.estimate-note strong { color: #344054; }
+
+/* ── ACTION BUTTONS ── */
+.action-row { display: flex; gap: 10px; }
+.btn { padding: 10px 18px; border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; display: flex; align-items: center; gap: 7px; }
+.btn-navy { background: #0F1835; color: white; }
+.btn-navy:hover { background: #1a2a5e; }
+.btn-green { background: #ecfdf3; color: #027a48; border: 1.5px solid #d1fadf; }
+.btn-green:hover { background: #d1fadf; }
+.btn-ghost { background: white; color: #344054; border: 1.5px solid #d0d5dd; }
+.btn-ghost:hover { border-color: #98a2b3; }
+
+/* ── RESULTS HIDDEN ── */
+#results-area { display: none; }
+#results-area.show { display: block; }
+#empty-state { display: flex; }
+#empty-state.hidden { display: none; }
+
+/* ── OPERATORS ── */
+.operators-section { margin-top: 16px; }
+.operators-title { font-size: 12px; font-weight: 700; color: #667085; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 10px; }
+.operators-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+@media (max-width: 860px) { .operators-grid { grid-template-columns: 1fr; } }
+.op-card {
+  background: white; border: 1.5px solid #e4e7ec; border-radius: 12px;
+  padding: 14px 16px; display: flex; flex-direction: column; gap: 6px;
+  position: relative; transition: border-color 0.15s, box-shadow 0.15s;
+}
+.op-card:hover { border-color: #C5920D; box-shadow: 0 2px 12px rgba(197,146,13,0.12); }
+.op-rank { position: absolute; top: 12px; right: 12px; font-size: 10px; font-weight: 700;
+  background: #f2f4f7; color: #667085; border-radius: 20px; padding: 2px 8px; }
+.op-rank.rank-1 { background: rgba(197,146,13,0.12); color: #C5920D; }
+.op-name { font-size: 13px; font-weight: 700; color: #0F1835; padding-right: 44px; }
+.op-country { font-size: 11px; color: #667085; }
+.op-fleet { font-size: 11px; color: #344054; margin-top: 2px; }
+.op-note { font-size: 11px; color: #667085; font-style: italic; }
+.op-link { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600;
+  color: #0F1835; text-decoration: none; margin-top: 4px; }
+.op-link:hover { color: #C5920D; }
+.op-score-bar { height: 3px; border-radius: 2px; background: #f2f4f7; margin-top: 4px; overflow: hidden; }
+.op-score-fill { height: 100%; background: linear-gradient(90deg, #C5920D, #e8b020); border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-icon">✈</div>
+    <div>
+      <div class="header-title">Flight Cost Estimator</div>
+      <div class="header-sub">Real-time charter price estimates based on 2026 European market rates</div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- LEFT: Inputs -->
+    <div class="panel-left">
+
+      <!-- Route -->
+      <div>
+        <div class="section-head">Route</div>
+
+        <!-- Departure -->
+        <div class="ac-field">
+          <label class="ac-label">Departure Airport</label>
+          <div class="ac-input-wrap">
+            <svg class="ac-icon" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+            <input id="dep-input" class="ac-input" autocomplete="off" spellcheck="false" placeholder="ICAO, IATA or city…" oninput="acFilter('dep')" onfocus="acFocus('dep')" onblur="acBlur('dep')" onkeydown="acKey(event,'dep')"/>
+            <button class="ac-clear" onclick="clearAp('dep')">×</button>
+          </div>
+          <div class="ac-dropdown hidden" id="dep-dropdown"></div>
+        </div>
+
+        <!-- Swap -->
+        <div style="text-align:center">
+          <button class="swap-btn" onclick="swapAirports()" title="Swap airports">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+          </button>
+        </div>
+
+        <!-- Arrival -->
+        <div class="ac-field" style="margin-top:4px">
+          <label class="ac-label">Arrival Airport</label>
+          <div class="ac-input-wrap">
+            <svg class="ac-icon" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+            <input id="arr-input" class="ac-input" autocomplete="off" spellcheck="false" placeholder="ICAO, IATA or city…" oninput="acFilter('arr')" onfocus="acFocus('arr')" onblur="acBlur('arr')" onkeydown="acKey(event,'arr')"/>
+            <button class="ac-clear" onclick="clearAp('arr')">×</button>
+          </div>
+          <div class="ac-dropdown hidden" id="arr-dropdown"></div>
+        </div>
+
+        <!-- Tier legend -->
+        <div class="tier-legend" style="margin-top:8px">
+          <div class="tier-legend-item"><div class="tier-dot tier-0"></div> Low fees</div>
+          <div class="tier-legend-item"><div class="tier-dot tier-1"></div> Medium</div>
+          <div class="tier-legend-item"><div class="tier-dot tier-2"></div> High</div>
+          <div class="tier-legend-item"><div class="tier-dot tier-3"></div> Very high</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Flight Details -->
+      <div>
+        <div class="section-head">Flight Details</div>
+        <div class="field-row" style="margin-bottom:12px">
+          <div class="field">
+            <label>Passengers</label>
+            <input id="inp-pax" type="number" min="1" max="19" value="4" oninput="calculate()"/>
+          </div>
+          <div class="field">
+            <label>Flight Date</label>
+            <input id="inp-date" type="date" oninput="calculate()"/>
+          </div>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-label">Trip type</div>
+          <div class="toggle-track" id="return-toggle" onclick="toggleReturn()">
+            <div class="toggle-thumb"></div>
+          </div>
+          <div class="toggle-text" id="return-label">One way</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: Results -->
+    <div class="panel-right">
+
+      <!-- Empty state -->
+      <div class="empty-state" id="empty-state">
+        <div class="empty-icon">✈</div>
+        <div class="empty-title">Select departure and arrival</div>
+        <div class="empty-sub">Choose both airports to see real-time price estimates across all aircraft categories.</div>
+      </div>
+
+      <!-- Results -->
+      <div id="results-area">
+
+        <!-- Route header -->
+        <div class="route-header" id="route-header">
+          <div>
+            <div class="route-airports" id="route-airports"></div>
+            <div class="route-meta" id="route-meta"></div>
+          </div>
+          <div class="route-badge" id="route-badge"></div>
+        </div>
+
+        <!-- Stat cards -->
+        <div class="stat-cards">
+          <div class="stat-card">
+            <div class="stat-label">Estimated Distance</div>
+            <div class="stat-value" id="stat-dist">—</div>
+            <div class="stat-unit">kilometres great circle</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Shortest Flight Time</div>
+            <div class="stat-value" id="stat-time">—</div>
+            <div class="stat-unit" id="stat-time-sub">incl. taxi + takeoff</div>
+          </div>
+          <div class="stat-card seasonal">
+            <div class="stat-label">Seasonal Adjustment</div>
+            <div class="stat-value" id="stat-seasonal">—</div>
+            <div class="stat-unit" id="stat-seasonal-sub"></div>
+          </div>
+        </div>
+
+        <!-- Results table -->
+        <div class="results-card">
+          <table class="results-table">
+            <thead>
+              <tr>
+                <th>Aircraft Category</th>
+                <th>Flight Time</th>
+                <th>Low Estimate</th>
+                <th>High Estimate</th>
+                <th>Per Person</th>
+              </tr>
+            </thead>
+            <tbody id="results-tbody"></tbody>
+          </table>
+        </div>
+
+        <!-- Note -->
+        <div class="estimate-note">
+          <strong>Estimates only.</strong> These figures are based on 2026 European market rates, great-circle distance, and standard operator pricing patterns. Actual quotes may vary depending on aircraft availability, operator positioning, fuel prices, and specific flight requirements.
+          <strong>Contact us for an exact quote.</strong>
+        </div>
+
+        <!-- Empty leg -->
+        <div class="empty-leg-card" id="empty-leg-card">
+          <div class="el-badge">Empty Leg</div>
+          <div>
+            <div class="el-label">Potential empty leg saving (if available on this route)</div>
+            <div class="el-range" id="el-range">—</div>
+            <div class="el-saving" id="el-saving"></div>
+          </div>
+        </div>
+
+        <!-- Operator recommendations -->
+        <div id="operators-section" class="operators-section" style="display:none"></div>
+
+        <!-- Action buttons -->
+        <div class="action-row">
+          <button class="btn btn-navy" onclick="createQuote()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h5l5 5v11a2 2 0 01-2 2z"/></svg>
+            Create Quote
+          </button>
+          <button class="btn btn-green" onclick="checkEmptyLegs()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            Check Empty Legs
+          </button>
+        </div>
+
+      </div><!-- /results-area -->
+    </div><!-- /panel-right -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+'use strict';
+
+// ── AIRPORT DATABASE ──────────────────────────────────────────────────────────
+// [icao, iata, name, city, country, lat, lon, tier(0-3), season(0-4)]
+// tier: 0=low 1=medium 2=high 3=very_high
+// season: 0=none 1=med 2=alps 3=ibiza 4=mykonos
+const RAW = [
+  // Belgium
+  ['EBAW','ANR','Antwerp Intl','Antwerp','BE',51.1894,4.4603,0,0],
+  ['EBBR','BRU','Brussels Airport','Brussels','BE',50.9014,4.4844,1,0],
+  ['EBLG','LGG','Liège Airport','Liège','BE',50.6374,5.4432,0,0],
+  ['EBKT','KJK','Kortrijk-Wevelgem','Kortrijk','BE',50.8172,3.2047,0,0],
+  ['EBCI','CRL','Brussels South Charleroi','Charleroi','BE',50.4592,4.4538,0,0],
+  // Netherlands
+  ['EHAM','AMS','Amsterdam Schiphol','Amsterdam','NL',52.3086,4.7639,2,0],
+  ['EHRD','RTM','Rotterdam The Hague','Rotterdam','NL',51.9569,4.4372,1,0],
+  ['EHEH','EIN','Eindhoven Airport','Eindhoven','NL',51.4501,5.3745,0,0],
+  ['EHBK','MST','Maastricht Aachen','Maastricht','NL',50.9117,5.7701,0,0],
+  // Germany
+  ['EDDK','CGN','Cologne Bonn Airport','Cologne','DE',50.8659,7.1427,1,0],
+  ['EDDL','DUS','Düsseldorf Airport','Düsseldorf','DE',51.2895,6.7668,1,0],
+  ['EDDM','MUC','Munich Airport','Munich','DE',48.3537,11.7861,2,0],
+  ['EDDF','FRA','Frankfurt Airport','Frankfurt','DE',50.0333,8.5706,2,0],
+  ['EDDB','BER','Berlin Brandenburg','Berlin','DE',52.3667,13.5033,1,0],
+  ['EDDS','STR','Stuttgart Airport','Stuttgart','DE',48.6899,9.2220,1,0],
+  ['EDDH','HAM','Hamburg Airport','Hamburg','DE',53.6304,9.9882,1,0],
+  ['EDDN','NUE','Nuremberg Airport','Nuremberg','DE',49.4987,11.0669,1,0],
+  ['EDDW','BRE','Bremen Airport','Bremen','DE',53.0475,8.7867,1,0],
+  ['EDDC','DRS','Dresden Airport','Dresden','DE',51.1328,13.7672,1,0],
+  ['EDDV','HAJ','Hannover Airport','Hannover','DE',52.4611,9.6850,1,0],
+  ['EDDP','LEJ','Leipzig Halle','Leipzig','DE',51.4239,12.2361,0,0],
+  ['EDLP','PAD','Paderborn Lippstadt','Paderborn','DE',51.6142,8.6161,0,0],
+  // Luxembourg
+  ['ELLX','LUX','Luxembourg Airport','Luxembourg','LU',49.6233,6.2044,1,0],
+  // France
+  ['LFPB','LBG','Paris Le Bourget','Paris','FR',48.9694,2.4414,2,0],
+  ['LFPO','ORY','Paris Orly','Paris','FR',48.7253,2.3597,1,0],
+  ['LFPG','CDG','Paris Charles de Gaulle','Paris','FR',49.0097,2.5479,1,0],
+  ['LFMN','NCE','Nice Cote d’Azur','Nice','FR',43.6584,7.2159,3,1],
+  ['LFMD','CEQ','Cannes Mandelieu','Cannes','FR',43.5420,6.9531,2,1],
+  ['LFLL','LYS','Lyon Saint-Exupéry','Lyon','FR',45.7256,5.0811,1,0],
+  ['LFML','MRS','Marseille Provence','Marseille','FR',43.4393,5.2214,1,1],
+  ['LFBD','BOD','Bordeaux Mérignac','Bordeaux','FR',44.8283,-0.7156,1,0],
+  ['LFLB','CMF','Chambéry Airport','Chambéry','FR',45.6381,5.8803,1,2],
+  ['LFRS','NTE','Nantes Atlantique','Nantes','FR',47.1532,-1.6108,1,0],
+  ['LFBO','TLS','Toulouse Blagnac','Toulouse','FR',43.6293,1.3638,1,0],
+  ['LFST','SXB','Strasbourg Airport','Strasbourg','FR',48.5383,7.6281,1,0],
+  ['LFBZ','BIQ','Biarritz Airport','Biarritz','FR',43.4683,-1.5231,1,1],
+  ['LFMT','MPL','Montpellier Airport','Montpellier','FR',43.5762,3.9630,1,1],
+  ['LFLS','GNB','Grenoble Alpes Isère','Grenoble','FR',45.3628,5.3294,1,2],
+  ['LFLJ','CVF','Courchevel Airport','Courchevel','FR',45.4047,6.6347,3,2],
+  ['LFHM','MVV','Megève Airport','Megève','FR',45.8206,6.6522,2,2],
+  ['LFKJ','AJA','Ajaccio Napoleon Bonaparte','Ajaccio','FR',41.9236,8.8023,1,1],
+  ['LFKB','BIA','Bastia Poretta','Bastia','FR',42.5527,9.4837,1,1],
+  ['LFLC','CFE','Clermont-Ferrand Auvergne','Clermont-Ferrand','FR',45.7867,3.1692,0,0],
+  ['LFMQ','LTQ','Le Touquet Paris-Plage','Le Touquet','FR',50.5175,1.6206,1,0],
+  // UK
+  ['EGKB','BQH','London Biggin Hill','London','GB',51.3308,0.0325,2,0],
+  ['EGGW','LTN','London Luton','London','GB',51.8747,-0.3683,2,0],
+  ['EGLF','FAB','London Farnborough','London','GB',51.2775,-0.7764,3,0],
+  ['EGSS','STN','London Stansted','London','GB',51.8850,0.2350,1,0],
+  ['EGCC','MAN','Manchester Airport','Manchester','GB',53.3537,-2.2750,1,0],
+  ['EGBB','BHX','Birmingham Airport','Birmingham','GB',52.4539,-1.7480,0,0],
+  ['EGPH','EDI','Edinburgh Airport','Edinburgh','GB',55.9500,-3.3725,1,0],
+  ['EGPF','GLA','Glasgow Airport','Glasgow','GB',55.8719,-4.4331,1,0],
+  ['EGGD','BRS','Bristol Airport','Bristol','GB',51.3827,-2.7191,1,0],
+  ['EGTE','EXT','Exeter Airport','Exeter','GB',50.7344,-3.4139,0,0],
+  ['EGHI','SOU','Southampton Airport','Southampton','GB',50.9503,-1.3567,1,0],
+  ['EGNT','NCL','Newcastle Airport','Newcastle','GB',55.0375,-1.6917,0,0],
+  ['EGNM','LBA','Leeds Bradford','Leeds','GB',53.8659,-1.6606,0,0],
+  ['EGAC','BHD','Belfast City George Best','Belfast','GB',54.6181,-5.8725,0,0],
+  ['EGPD','ABZ','Aberdeen Airport','Aberdeen','GB',57.2019,-2.1978,0,0],
+  ['EGPE','INV','Inverness Airport','Inverness','GB',57.5425,-4.0475,0,0],
+  ['EGJJ','JER','Jersey Airport','Jersey','GB',49.2079,-2.1953,1,0],
+  ['EGJB','GCI','Guernsey Airport','Guernsey','GB',49.4350,-2.6017,1,0],
+  ['EGNS','IOM','Isle of Man Airport','Isle of Man','GB',54.0833,-4.6239,0,0],
+  ['EGHH','BOH','Bournemouth Airport','Bournemouth','GB',50.7800,-1.8422,0,0],
+  ['EGSH','NWI','Norwich Airport','Norwich','GB',52.6758,1.2828,0,0],
+  ['EGPK','PIK','Glasgow Prestwick','Glasgow','GB',55.5094,-4.5867,0,0],
+  // Ireland
+  ['EIDW','DUB','Dublin Airport','Dublin','IE',53.4213,-6.2700,1,0],
+  ['EICK','ORK','Cork Airport','Cork','IE',51.8411,-8.4911,0,0],
+  // Switzerland
+  ['LSGG','GVA','Geneva Airport','Geneva','CH',46.2381,6.1089,2,0],
+  ['LSZH','ZRH','Zurich Airport','Zurich','CH',47.4647,8.5492,2,0],
+  ['LSZB','BRN','Bern Airport','Bern','CH',46.9141,7.4972,1,0],
+  ['LSGS','SIR','Sion Airport','Sion','CH',46.2197,7.3267,1,2],
+  ['LSZS','SMV','Samedan Airport St. Moritz','St. Moritz','CH',46.5341,9.8842,3,2],
+  // Italy
+  ['LIML','LIN','Milan Linate','Milan','IT',45.4453,9.2767,2,0],
+  ['LIMC','MXP','Milan Malpensa','Milan','IT',45.6306,8.7281,1,0],
+  ['LIRA','CIA','Rome Ciampino','Rome','IT',41.7994,12.5897,1,0],
+  ['LIRF','FCO','Rome Fiumicino','Rome','IT',41.8003,12.2389,1,0],
+  ['LIEO','OLB','Olbia Costa Smeralda','Olbia','IT',40.8987,9.5178,2,1],
+  ['LIRN','NAP','Naples International','Naples','IT',40.8860,14.2908,1,1],
+  ['LIPZ','VCE','Venice Marco Polo','Venice','IT',45.5053,12.3519,1,0],
+  ['LIRQ','FLR','Florence Peretola','Florence','IT',43.8100,11.2053,1,0],
+  ['LIMF','TRN','Turin Caselle','Turin','IT',45.2008,7.6497,1,0],
+  ['LICC','CTA','Catania Fontanarossa','Catania','IT',37.4667,15.0664,1,1],
+  ['LICJ','PMO','Palermo Falcone-Borsellino','Palermo','IT',38.1759,13.0908,1,1],
+  ['LIBD','BRI','Bari Karol Wojtyla','Bari','IT',41.1389,16.7606,1,1],
+  ['LIEE','CAG','Cagliari Elmas','Cagliari','IT',39.2514,9.0544,1,1],
+  ['LIPE','BLQ','Bologna Marconi','Bologna','IT',44.5354,11.2887,1,0],
+  ['LIRP','PSA','Pisa Galileo Galilei','Pisa','IT',43.6839,10.3928,1,0],
+  ['LIPR','RMI','Rimini Federico Fellini','Rimini','IT',44.0203,12.6117,1,1],
+  // Spain
+  ['LEIB','IBZ','Ibiza Airport','Ibiza','ES',38.8729,1.3731,3,3],
+  ['LEMG','AGP','Malaga Costa del Sol','Malaga','ES',36.6749,-4.4991,1,1],
+  ['LEBL','BCN','Barcelona El Prat','Barcelona','ES',41.2971,2.0785,1,0],
+  ['LEPA','PMI','Palma de Mallorca','Palma','ES',39.5517,2.7388,1,1],
+  ['LEMD','MAD','Madrid Barajas','Madrid','ES',40.4936,-3.5668,1,0],
+  ['LEZL','SVQ','Seville San Pablo','Seville','ES',37.4180,-5.8931,1,1],
+  ['LEBB','BIO','Bilbao Airport','Bilbao','ES',43.3011,-2.9106,1,0],
+  ['LEVC','VLC','Valencia Airport','Valencia','ES',39.4893,-0.4816,1,1],
+  ['LEAL','ALC','Alicante Elche','Alicante','ES',38.2822,-0.5581,1,1],
+  ['LEMX','OZP','Marbella San Pedro','Marbella','ES',36.4994,-4.9853,2,1],
+  ['LEST','SCQ','Santiago de Compostela','Santiago','ES',42.8963,-8.4154,0,0],
+  ['LEGE','GRO','Girona Costa Brava','Girona','ES',41.9011,2.7606,0,0],
+  ['GCLP','LPA','Gran Canaria Airport','Las Palmas','ES',27.9319,-15.3866,1,0],
+  ['GCXO','TFN','Tenerife Norte','Tenerife','ES',28.4827,-16.3414,1,0],
+  ['GCTS','TFS','Tenerife Sur','Tenerife','ES',28.0445,-16.5725,1,0],
+  ['GCFV','FUE','Fuerteventura Airport','Fuerteventura','ES',28.4527,-13.8636,1,0],
+  ['GCLA','SPC','La Palma Airport','La Palma','ES',28.6265,-17.7556,0,0],
+  // Portugal
+  ['LPPT','LIS','Lisbon Humberto Delgado','Lisbon','PT',38.7756,-9.1354,1,0],
+  ['LPFR','FAO','Faro Airport','Faro','PT',37.0144,-7.9659,1,1],
+  ['LPPR','OPO','Porto Sá Carneiro','Porto','PT',41.2481,-8.6814,1,0],
+  // Greece
+  ['LGAV','ATH','Athens Eleftherios Venizelos','Athens','GR',37.9364,23.9445,1,1],
+  ['LGMK','JMK','Mykonos Island Airport','Mykonos','GR',37.4351,25.3481,3,4],
+  ['LGSR','JTR','Santorini (Thira) Airport','Santorini','GR',36.3992,25.4793,2,1],
+  ['LGKR','CFU','Corfu Ioannis Kapodistrias','Corfu','GR',39.6019,19.9117,1,1],
+  ['LGTS','SKG','Thessaloniki Macedonia','Thessaloniki','GR',40.5197,22.9709,1,1],
+  ['LGRP','RHO','Rhodes Diagoras','Rhodes','GR',36.4053,28.0862,1,1],
+  ['LGIR','HER','Heraklion Nikos Kazantzakis','Heraklion','GR',35.3397,25.1803,1,1],
+  ['LGZA','ZTH','Zakynthos International','Zakynthos','GR',37.7508,20.8842,1,1],
+  ['LGKC','KGS','Kos Island Airport','Kos','GR',36.7933,27.0917,1,1],
+  ['LGSA','CHQ','Chania International','Chania','GR',35.5317,24.1497,1,1],
+  ['LGKF','EFL','Kefalonia Island Airport','Kefalonia','GR',38.1206,20.5003,1,1],
+  // Turkey
+  ['LTFM','IST','Istanbul Airport','Istanbul','TR',41.2753,28.7519,1,0],
+  ['LTBS','DLM','Dalaman Airport','Dalaman','TR',36.7131,28.7925,1,1],
+  ['LTFE','BJV','Bodrum Milas Airport','Bodrum','TR',37.2506,27.6644,1,1],
+  ['LTAI','AYT','Antalya Airport','Antalya','TR',36.8987,30.8003,1,1],
+  ['LTAC','ESB','Ankara Esenboğa','Ankara','TR',40.1281,32.9956,1,0],
+  // Austria
+  ['LOWW','VIE','Vienna International','Vienna','AT',48.1103,16.5697,1,0],
+  ['LOWI','INN','Innsbruck Airport','Innsbruck','AT',47.2602,11.3439,2,2],
+  ['LOWS','SZG','Salzburg Airport','Salzburg','AT',47.7933,13.0031,1,0],
+  ['LOWG','GRZ','Graz Airport','Graz','AT',46.9911,15.4397,1,0],
+  // Scandinavia
+  ['EKCH','CPH','Copenhagen Kastrup','Copenhagen','DK',55.6180,12.6561,1,0],
+  ['EKAH','AAR','Aarhus Airport','Aarhus','DK',56.2999,10.6190,0,0],
+  ['EKRK','RKE','Copenhagen Roskilde','Copenhagen','DK',55.5853,12.1314,0,0],
+  ['ESSA','ARN','Stockholm Arlanda','Stockholm','SE',59.6519,17.9186,1,0],
+  ['ESSB','BMA','Stockholm Bromma','Stockholm','SE',59.3544,17.9417,1,0],
+  ['ESGG','GOT','Gothenburg Landvetter','Gothenburg','SE',57.6628,12.2797,1,0],
+  ['ESMS','MMX','Malmö Airport','Malmö','SE',55.5363,13.3761,1,0],
+  ['ENGM','OSL','Oslo Gardermoen','Oslo','NO',60.1939,11.1004,1,0],
+  ['ENBR','BGO','Bergen Flesland','Bergen','NO',60.2939,5.2181,1,0],
+  ['ENZV','SVG','Stavanger Sola','Stavanger','NO',58.8767,5.6378,1,0],
+  ['ENVA','TRD','Trondheim Væres','Trondheim','NO',63.4578,10.9239,0,0],
+  ['ENHD','HAU','Haugesund Karmøy','Haugesund','NO',59.3453,5.2083,0,0],
+  ['EFHK','HEL','Helsinki Vantaa','Helsinki','FI',60.3172,24.9633,1,0],
+  ['EFTU','TKU','Turku Airport','Turku','FI',60.5147,22.2628,0,0],
+  ['EFRO','RVN','Rovaniemi Airport','Rovaniemi','FI',66.5647,25.8305,0,0],
+  // Baltics
+  ['EVRA','RIX','Riga International','Riga','LV',56.9236,23.9711,1,0],
+  ['EETN','TLL','Tallinn Airport','Tallinn','EE',59.4133,24.8328,1,0],
+  ['EYVI','VNO','Vilnius Airport','Vilnius','LT',54.6341,25.2858,1,0],
+  // Eastern Europe
+  ['EPWA','WAW','Warsaw Chopin','Warsaw','PL',52.1657,20.9671,1,0],
+  ['EPKK','KRK','Krakow John Paul II','Krakow','PL',50.0778,19.7848,1,0],
+  ['EPGD','GDN','Gdansk Lech Walesa','Gdansk','PL',54.3775,18.4661,0,0],
+  ['EPWR','WRO','Wroclaw N. Copernicus','Wroclaw','PL',51.1026,16.8858,0,0],
+  ['EPPO','POZ','Poznan Lawica','Poznan','PL',52.4211,16.8263,0,0],
+  ['EPKT','KTW','Katowice Airport','Katowice','PL',50.4744,19.0800,0,0],
+  ['LKPR','PRG','Prague Václav Havel','Prague','CZ',50.1008,14.2600,1,0],
+  ['LKMT','OSR','Ostrava Leoš Janáček','Ostrava','CZ',49.6961,18.1111,0,0],
+  ['LKTB','BRQ','Brno-Tuřany Airport','Brno','CZ',49.1514,16.6944,0,0],
+  ['LHBP','BUD','Budapest Ferenc Liszt','Budapest','HU',47.4369,19.2556,1,0],
+  ['LHDC','DEB','Debrecen International','Debrecen','HU',47.4889,21.6153,0,0],
+  ['LROP','OTP','Bucharest Henri Coandă','Bucharest','RO',44.5722,26.1022,1,0],
+  ['LRCK','CLJ','Cluj-Napoca Avram Iancu','Cluj-Napoca','RO',46.7852,23.6861,0,0],
+  ['LBSF','SOF','Sofia Airport','Sofia','BG',42.6967,23.4114,1,0],
+  ['LBBG','BOJ','Burgas Airport','Burgas','BG',42.5697,27.5153,1,1],
+  ['LDZA','ZAG','Zagreb Airport','Zagreb','HR',45.7429,16.0688,1,0],
+  ['LDSP','SPU','Split Airport','Split','HR',43.5389,16.2978,1,1],
+  ['LJLJ','LJU','Ljubljana Jože Pučnik','Ljubljana','SI',46.2237,14.4576,1,0],
+  ['LYBE','BEG','Belgrade Nikola Tesla','Belgrade','RS',44.8184,20.3091,1,0],
+  ['LZIB','BTS','Bratislava Airport','Bratislava','SK',48.1703,17.2127,1,0],
+  ['LWSK','SKP','Skopje Alexander the Great','Skopje','MK',41.9614,21.6214,0,0],
+  // Southeast Europe
+  ['LATI','TIA','Tirana Mother Teresa','Tirana','AL',41.4147,19.7206,0,0],
+  ['LYNI','TGD','Podgorica Airport','Podgorica','ME',42.3594,19.2519,0,0],
+  ['LQSA','SJJ','Sarajevo International','Sarajevo','BA',43.8246,18.3314,0,0],
+  ['BKPR','PRN','Pristina Adem Jashari','Pristina','XK',42.5728,21.0358,0,0],
+  ['LUKK','KIV','Chisinau International','Chisinau','MD',46.9278,28.9308,0,0],
+  // Mediterranean islands
+  ['LMML','MLA','Malta International','Malta','MT',35.8572,14.4775,1,1],
+  ['LCLK','LCA','Larnaca International','Larnaca','CY',34.8751,33.6249,1,1],
+  ['LCPH','PFO','Paphos International','Paphos','CY',34.7178,32.4856,1,1],
+  ['LXGB','GIB','Gibraltar Airport','Gibraltar','GI',36.1512,-5.3497,1,1],
+  // Iceland
+  ['BIRK','RKV','Reykjavik Domestic','Reykjavik','IS',64.1300,-21.9406,0,0],
+  ['BIKF','KEF','Keflavik International','Reykjavik','IS',63.9850,-22.6056,0,0],
+  // Middle East
+  ['LLBG','TLV','Ben Gurion International','Tel Aviv','IL',32.0114,34.8867,2,0],
+  ['OJAM','AMM','Queen Alia International','Amman','JO',31.7226,35.9936,1,0],
+  ['OMDB','DXB','Dubai International','Dubai','AE',25.2528,55.3644,2,0],
+  ['OMAA','AUH','Abu Dhabi International','Abu Dhabi','AE',24.4330,54.6511,2,0],
+  ['OMSJ','SHJ','Sharjah International','Sharjah','AE',25.3286,55.5172,1,0],
+  // North Africa
+  ['GMMX','RAK','Marrakesh Menara','Marrakesh','MA',31.6069,-8.0364,1,0],
+  ['GMMN','CMN','Casablanca Mohammed V','Casablanca','MA',33.3675,-7.5900,1,0],
+  ['DTTA','TUN','Tunis Carthage','Tunis','TN',36.8510,10.2272,1,0],
+  // Additional popular private aviation airports
+  ['EGCN','DSA','Doncaster Sheffield','Doncaster','GB',53.4747,-1.0106,0,0],
+  ['LDDU','DBV','Dubrovnik Airport','Dubrovnik','HR',42.5614,18.2681,2,1],
+  ['LTBJ','ADB','Izmir Adnan Menderes','Izmir','TR',38.2924,27.1570,1,1],
+  ['LIPI','TSF','Treviso Airport','Treviso','IT',45.6484,12.1944,1,0],
+  ['LIMJ','GOA','Genoa Cristoforo Colombo','Genoa','IT',44.4133,8.8375,1,1],
+  ['LEMH','MAH','Menorca Airport','Menorca','ES',39.8626,4.2186,1,1],
+  ['LERS','REU','Reus Airport','Tarragona','ES',41.1472,1.1672,0,0],
+  ['LJPZ','POW','Portoroz Airport','Portoroz','SI',45.4736,13.6150,0,1],
+  ['EKYT','AAL','Aalborg Airport','Aalborg','DK',57.0928,9.8492,0,0],
+  ['LGHI','JKH','Chios Island Airport','Chios','GR',38.3431,26.1406,0,1],
+  ['LGSM','SMI','Samos Airport','Samos','GR',37.6900,26.9117,0,1],
+  ['LGRX','PVK','Preveza Aktio Airport','Preveza','GR',38.9253,20.7653,0,1],
+  ['LOWK','KLU','Klagenfurt Airport','Klagenfurt','AT',46.6428,14.3375,1,0],
+];
+
+const AIRPORTS = RAW.map(r => ({
+  icao:r[0], iata:r[1], name:r[2], city:r[3], country:r[4],
+  lat:r[5], lon:r[6], tier:r[7], season:r[8]
+}));
+
+// ── AIRCRAFT ──────────────────────────────────────────────────────────────────
+const AIRCRAFT = [
+  {id:'vlj',  cat:'Very Light Jet', ex:'Mustang · Phenom 100',              speed:650, rate:2800},
+  {id:'lj',   cat:'Light Jet',      ex:'Phenom 300 · CJ3+ · Citation XLS+', speed:750, rate:4200},
+  {id:'mid',  cat:'Midsize Jet',    ex:'Challenger 350 · Hawker 900XP',      speed:830, rate:5800},
+  {id:'smid', cat:'Super Midsize',  ex:'Praetor 600 · Citation Longitude',   speed:870, rate:7200},
+  {id:'hvy',  cat:'Heavy Jet',      ex:'Global 6000 · Falcon 7X · G550',     speed:900, rate:9500},
+];
+
+// ── OPERATOR BASES ─────────────────────────────────────────────────────────────
+const BASES = [
+  [51.1894,4.4603],[50.9014,4.4844],[52.3086,4.7639],[48.9694,2.4414],
+  [51.3308,0.0325],[46.2381,6.1089],[47.4647,8.5492],[48.3537,11.7861],
+  [48.1103,16.5697],[45.4453,9.2767],[43.6584,7.2159],[40.4936,-3.5668],
+  [37.9364,23.9445],[41.2753,28.7519],
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let depAp = null, arrAp = null;
+let isReturn = false;
+let acFocusIndex = { dep: -1, arr: -1 };
+let acVisible = { dep: [], arr: [] };
+let blurTimer = {};
+const TIER_COLORS = ['#9ca3af','#3b82f6','#f59e0b','#ef4444'];
+
+// ── HAVERSINE ─────────────────────────────────────────────────────────────────
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371, r = Math.PI/180;
+  const dLat = (lat2-lat1)*r, dLon = (lon2-lon1)*r;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*r)*Math.cos(lat2*r)*Math.sin(dLon/2)**2;
+  return R * 2 * Math.asin(Math.sqrt(a));
+}
+
+// ── TIER FACTOR ───────────────────────────────────────────────────────────────
+function getTierFactor(t1, t2) {
+  if (t1 === 3 && t2 === 3) return 0.20;
+  if (t1 === 3 || t2 === 3) return 0.15;
+  if (t1 === 2 && t2 === 2) return 0.12;
+  if (t1 === 2 || t2 === 2) return 0.08;
+  if (t1 === 0 && t2 === 0) return -0.05;
+  return 0;
+}
+
+// ── SEASONAL ──────────────────────────────────────────────────────────────────
+function getSeasonalFactor(dep, arr, dateStr) {
+  if (!dateStr) return { factor: 0, label: 'None', sub: 'No date selected' };
+  const d = new Date(dateStr + 'T12:00:00');
+  const m = d.getMonth() + 1, day = d.getDate(), mmdd = m * 100 + day;
+  let maxF = 0, label = 'None', sub = '';
+
+  for (const ap of [dep, arr]) {
+    let f = 0, lbl = '', sb = '';
+    const s = ap.season;
+    if (s === 3) {                                   // ibiza
+      if (mmdd >= 601 && mmdd <= 930) { f=0.30; lbl='+30%'; sb='Ibiza peak season'; }
+    } else if (s === 4) {                            // mykonos
+      if (mmdd >= 615 && mmdd <= 915) { f=0.30; lbl='+30%'; sb='Mykonos peak season'; }
+    } else if (s === 1) {                            // mediterranean
+      if (mmdd >= 615 && mmdd <= 915) { f=0.20; lbl='+20%'; sb='Mediterranean summer'; }
+    } else if (s === 2) {                            // alps
+      if (mmdd >= 1215 || mmdd <= 315) { f=0.25; lbl='+25%'; sb='Alps ski season'; }
+    }
+    if (f > maxF) { maxF = f; label = lbl; sub = sb; }
+  }
+  return { factor: maxF, label: maxF > 0 ? label : 'None', sub };
+}
+
+// ── POSITIONING ───────────────────────────────────────────────────────────────
+function getPositioningCost(dep, ac) {
+  let minDist = Infinity;
+  for (const [lat, lon] of BASES) {
+    const d = haversine(dep.lat, dep.lon, lat, lon);
+    if (d < minDist) minDist = d;
+  }
+  if (minDist <= 200) return 0;
+  return (minDist / ac.speed) * ac.rate * 0.7;
+}
+
+// ── VISIBLE CATEGORIES ────────────────────────────────────────────────────────
+function getVisibleCats(pax) {
+  if (pax >= 11) return ['hvy'];
+  if (pax >= 8)  return ['mid','smid','hvy'];
+  if (pax >= 5)  return ['lj','mid','smid'];
+  return ['vlj','lj','mid'];
+}
+
+// ── RECOMMENDED ───────────────────────────────────────────────────────────────
+function getRecommended(pax, dist) {
+  const vis = getVisibleCats(pax);
+  if (pax >= 11) return 'hvy';
+  if (pax >= 8)  return dist > 2500 ? 'hvy' : 'smid';
+  if (pax >= 5)  return dist > 2500 ? 'smid' : 'mid';
+  if (dist > 3000) return vis.includes('mid') ? 'mid' : 'lj';
+  if (dist > 1500) return 'lj';
+  return pax <= 2 ? 'vlj' : 'lj';
+}
+
+// ── FORMAT ────────────────────────────────────────────────────────────────────
+function fmtEur(n) { return '€ ' + Math.round(n).toLocaleString('de-DE'); }
+function fmtHrs(h) { const hh = Math.floor(h), mm = Math.round((h-hh)*60); return hh + 'h ' + String(mm).padStart(2,'0') + 'm'; }
+function fmtKm(n)  { return Math.round(n).toLocaleString('de-DE') + ' km'; }
+
+// ── CALCULATE ─────────────────────────────────────────────────────────────────
+function calculate() {
+  if (!depAp || !arrAp) { showEmpty(); return; }
+  if (depAp.icao === arrAp.icao) { showEmpty('Same departure and arrival'); return; }
+
+  const pax = Math.min(19, Math.max(1, parseInt(document.getElementById('inp-pax').value) || 1));
+  const dateStr = document.getElementById('inp-date').value;
+
+  const dist = haversine(depAp.lat, depAp.lon, arrAp.lat, arrAp.lon);
+  const tierFactor = getTierFactor(depAp.tier, arrAp.tier);
+  const seasonal = getSeasonalFactor(depAp, arrAp, dateStr);
+  const visibleCats = getVisibleCats(pax);
+  const recommended = getRecommended(pax, dist);
+
+  const results = AIRCRAFT
+    .filter(ac => visibleCats.includes(ac.id))
+    .map(ac => {
+      const flightHrs = dist / ac.speed + 15/60;
+      const baseCost  = flightHrs * ac.rate;
+      const adjusted  = baseCost * (1 + tierFactor) * (1 + seasonal.factor);
+      const pos       = getPositioningCost(depAp, ac);
+      let total       = adjusted + pos;
+      if (isReturn) total *= 1.8;
+      const low  = total * 0.92;
+      const high = total * 1.08;
+      return { ...ac, flightHrs, low, high, perPersonLow: low/pax, perPersonHigh: high/pax, isRec: ac.id === recommended };
+    });
+
+  renderResults(dist, seasonal, results, pax);
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function showEmpty(msg) {
+  document.getElementById('empty-state').classList.remove('hidden');
+  document.getElementById('results-area').classList.remove('show');
+}
+
+function renderResults(dist, seasonal, results, pax) {
+  document.getElementById('empty-state').classList.add('hidden');
+  document.getElementById('results-area').classList.add('show');
+
+  // Route header
+  document.getElementById('route-airports').textContent = depAp.icao + ' → ' + arrAp.icao;
+  document.getElementById('route-meta').textContent = depAp.city + ', ' + depAp.country + ' → ' + arrAp.city + ', ' + arrAp.country;
+  document.getElementById('route-badge').textContent = isReturn ? 'Return flight' : 'One way';
+
+  // Stat cards
+  document.getElementById('stat-dist').textContent = fmtKm(dist);
+  // Shortest flight time = fastest aircraft shown
+  const minTime = Math.min(...results.map(r => r.flightHrs));
+  document.getElementById('stat-time').textContent = fmtHrs(minTime);
+  document.getElementById('stat-time-sub').textContent = results.find(r => r.flightHrs === minTime)?.cat || '';
+  document.getElementById('stat-seasonal').textContent = seasonal.label;
+  document.getElementById('stat-seasonal-sub').textContent = seasonal.sub || (seasonal.factor === 0 ? 'Off-peak / no adjustment' : '');
+
+  // Results table
+  const tbody = document.getElementById('results-tbody');
+  tbody.innerHTML = results.map(r => `
+    <tr class="${r.isRec ? 'recommended' : ''}">
+      <td>
+        <div class="ac-name">${r.cat}${r.isRec ? ' <span class="rec-badge">★ Recommended</span>' : ''}</div>
+        <div class="ac-ex">${r.ex}</div>
+      </td>
+      <td>${fmtHrs(r.flightHrs)}</td>
+      <td><div class="price">${fmtEur(r.low)}</div></td>
+      <td><div class="price">${fmtEur(r.high)}</div></td>
+      <td>
+        <div class="price">${fmtEur(r.perPersonLow)}</div>
+        <div class="price-pp">to ${fmtEur(r.perPersonHigh)}</div>
+      </td>
+    </tr>`).join('');
+
+  // Empty leg estimate (based on recommended or first result)
+  const ref = results.find(r => r.isRec) || results[0];
+  const elLow  = ref.low * 0.35;
+  const elHigh = ref.low * 0.65;
+  const saving  = ref.low - elHigh;
+  document.getElementById('el-range').textContent = fmtEur(elLow) + ' – ' + fmtEur(elHigh);
+  document.getElementById('el-saving').textContent = 'Up to ' + fmtEur(saving) + ' saving vs. full charter (' + ref.cat + ')';
+
+  // Operator recommendations
+  const recId = results.find(r => r.isRec)?.id || results[0]?.id;
+  renderOperators(getTopOperators(depAp, arrAp, recId));
+}
+
+// ── OPERATOR RECOMMENDATIONS ─────────────────────────────────────────────────
+// [name, city, country, lat, lon, countries[], fleet[], note, website]
+// fleet codes match AIRCRAFT ids: vlj/lj/mid/smid/hvy
+const OPERATORS = [
+  {name:'Luxaviation',        city:'Luxembourg',     country:'LU', lat:49.6233, lon:6.2044,  countries:['LU','BE','DE','FR','CH','GB'],     fleet:['lj','mid','smid','hvy'], note:'Largest European private aviation group',           web:'luxaviation.com'},
+  {name:'TAG Aviation',       city:'Geneva',         country:'CH', lat:46.2381, lon:6.1089,  countries:['CH','FR','GB'],                    fleet:['mid','smid','hvy'],      note:'Premium VIP ops from Geneva & Farnborough',         web:'tagaviation.com'},
+  {name:'ExecuJet',           city:'Zurich',         country:'CH', lat:47.4647, lon:8.5492,  countries:['CH','DE','GB','FR','IT','ES'],     fleet:['mid','smid','hvy'],      note:'Global heavy jet operator, strong European network', web:'execujet.com'},
+  {name:'DC Aviation',        city:'Stuttgart',      country:'DE', lat:48.6899, lon:9.2220,  countries:['DE','AT','CH','NL','BE'],          fleet:['lj','mid','smid','hvy'], note:'Germany\'s leading charter & management group',     web:'dc-aviation.com'},
+  {name:'Jetfly Aviation',    city:'Luxembourg',     country:'LU', lat:49.6233, lon:6.2044,  countries:['LU','BE','FR','CH','DE','GB'],     fleet:['lj','mid'],              note:'PC-12 & Pilatus turboprop specialist in Benelux',   web:'jetfly.com'},
+  {name:'Air Hamburg',        city:'Hamburg',        country:'DE', lat:53.6304, lon:9.9882,  countries:['DE','AT','CH','NL','DK','SE'],     fleet:['lj','mid','smid'],       note:'Northern European specialist, Phenom 300 fleet',    web:'air-hamburg.de'},
+  {name:'Abelag Aviation',    city:'Brussels',       country:'BE', lat:50.9014, lon:4.4844,  countries:['BE','NL','LU','FR','GB','DE'],     fleet:['vlj','lj','mid'],        note:'Benelux & UK specialist, based at Brussels Exec',   web:'abelag.com'},
+  {name:'Elit\'Avia',         city:'Ljubljana',      country:'SI', lat:46.2236, lon:14.4576, countries:['SI','AT','HR','IT','GR','CS'],     fleet:['lj','mid','smid'],       note:'Eastern Europe & Adriatic specialist',              web:'elitavia.com'},
+  {name:'Avcon Jet',          city:'Vienna',         country:'AT', lat:48.1103, lon:16.5697, countries:['AT','DE','CH','HU','CZ','SK'],     fleet:['lj','mid','smid','hvy'], note:'Austrian operator, strong Central & Eastern Europe', web:'avconjet.at'},
+  {name:'Wijet',              city:'Paris',          country:'FR', lat:48.9694, lon:2.4414,  countries:['FR','BE','CH','ES','GB'],          fleet:['vlj','lj'],              note:'Light jet specialist based at Le Bourget',          web:'wijet.com'},
+  {name:'Fly7 Executive',     city:'Lausanne',       country:'CH', lat:46.5395, lon:6.6155,  countries:['CH','FR','IT','AT'],               fleet:['lj','mid'],              note:'Swiss Alps approach specialist, Sion & Geneva base', web:'fly7.ch'},
+  {name:'Air Alsie',          city:'Sønderborg',     country:'DK', lat:54.9644, lon:9.7917,  countries:['DK','SE','NO','FI','DE','GB'],     fleet:['lj','mid','smid'],       note:'Scandinavian specialist, strong Nordic network',    web:'airalsie.dk'},
+  {name:'Gainjet',            city:'Athens',         country:'GR', lat:37.9364, lon:23.9445, countries:['GR','CY','MT','IT','TR'],          fleet:['mid','smid','hvy'],      note:'Eastern Med & Greek island specialist',             web:'gainjet.com'},
+  {name:'Global Jet',         city:'Luxembourg',     country:'LU', lat:49.6233, lon:6.2044,  countries:['LU','BE','FR','DE','GB','ES','IT'],fleet:['smid','hvy'],            note:'Ultra-long-range VIP aircraft specialist',          web:'globaljet.lu'},
+  {name:'Comlux',             city:'Zurich',         country:'CH', lat:47.4647, lon:8.5492,  countries:['CH','AE','IN'],                   fleet:['smid','hvy'],            note:'VVIP completions & ultra-long-range specialist',    web:'comlux.com'},
+  {name:'Silver Air',         city:'Prague',         country:'CZ', lat:50.1008, lon:14.2600, countries:['CZ','SK','PL','AT','DE','HU'],     fleet:['lj','mid'],              note:'Central & Eastern European operator',               web:'silverair.eu'},
+  {name:'Vallair / VallJet',  city:'Malta',          country:'MT', lat:35.8575, lon:14.4775, countries:['MT','IT','GR','TN','MA'],          fleet:['lj','mid'],              note:'Mediterranean island & North Africa specialist',    web:'valljet.com'},
+  {name:'Air Lease Charter',  city:'Madrid',         country:'ES', lat:40.4936, lon:-3.5668, countries:['ES','PT','MA','IT','FR'],          fleet:['mid','smid','hvy'],      note:'Iberian & South European specialist',               web:'air-lease.es'},
+  {name:'Chapman Freeborn',   city:'London',         country:'GB', lat:51.3308, lon:0.0325,  countries:['GB','FR','DE','BE','NL','ES','IT'],fleet:['lj','mid','smid','hvy'], note:'Global broker with pan-European operator network',  web:'chapmanfreeborn.aero'},
+  {name:'Air Partner',        city:'London',         country:'GB', lat:51.3308, lon:0.0325,  countries:['GB','FR','DE','BE','NL','IE','ES'],fleet:['vlj','lj','mid','smid','hvy'],note:'UK-listed global charter broker & operator',    web:'airpartner.com'},
+  {name:'Amira Air',          city:'Vienna',         country:'AT', lat:48.1103, lon:16.5697, countries:['AT','DE','CH','HU','RO','BG'],     fleet:['lj','mid'],              note:'Austrian boutique, Central & SEE European routes',  web:'amira-air.at'},
+  {name:'NHT Flugbetrieb',    city:'Cologne',        country:'DE', lat:50.8659, lon:7.1427,  countries:['DE','NL','BE','FR','AT'],          fleet:['vlj','lj','mid'],        note:'Germany\'s Benelux gateway operator',               web:'nht-flugbetrieb.de'},
+];
+
+function getTopOperators(dep, arr, recCat) {
+  const scored = OPERATORS.map(op => {
+    const dDep = haversine(op.lat, op.lon, dep.lat, dep.lon);
+    const dArr = haversine(op.lat, op.lon, arr.lat, arr.lon);
+    const proximity = Math.min(dDep, dArr);
+
+    // Proximity score: 50 pts max, decays to 0 at 2500 km
+    const proxScore = 50 * Math.max(0, 1 - proximity / 2500);
+
+    // Country bonus: 20 if operator is in dep/arr country, 10 if they cover it
+    const directCountry = op.country === dep.country || op.country === arr.country;
+    const coversCountry = op.countries.includes(dep.country) || op.countries.includes(arr.country);
+    const countryBonus = directCountry ? 20 : coversCountry ? 10 : 0;
+
+    // Fleet/type bonus
+    const typeBonus = op.fleet.includes(recCat) ? 15 : 0;
+
+    return { ...op, score: proxScore + countryBonus + typeBonus, dDep: Math.round(dDep) };
+  });
+
+  return scored.sort((a, b) => b.score - a.score).slice(0, 3);
+}
+
+function renderOperators(ops) {
+  const section = document.getElementById('operators-section');
+  if (!ops || !ops.length) { section.style.display = 'none'; return; }
+
+  const maxScore = ops[0].score;
+  section.style.display = 'block';
+  section.innerHTML = `
+    <div class="operators-title">Recommended Operators for this Route</div>
+    <div class="operators-grid">
+      ${ops.map((op, i) => {
+        const pct = Math.round((op.score / maxScore) * 100);
+        return `
+        <div class="op-card">
+          <div class="op-rank ${i === 0 ? 'rank-1' : ''}">${i === 0 ? '★ Best Match' : '#' + (i + 1)}</div>
+          <div class="op-name">${op.name}</div>
+          <div class="op-country">${op.city}, ${op.country} · Base ${op.dDep} km from departure</div>
+          <div class="op-fleet">Fleet: ${op.fleet.map(f => ({vlj:'VLJ',lj:'Light Jet',mid:'Midsize',smid:'Super Mid',hvy:'Heavy Jet'}[f])).join(' · ')}</div>
+          <div class="op-note">${op.note}</div>
+          <div class="op-score-bar"><div class="op-score-fill" style="width:${pct}%"></div></div>
+          <a class="op-link" href="https://www.${op.web}" target="_blank" rel="noopener">
+            <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            ${op.web}
+          </a>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// ── AUTOCOMPLETE ──────────────────────────────────────────────────────────────
+function acFilter(side) {
+  const q = document.getElementById(side + '-input').value.toLowerCase().trim();
+  const list = q
+    ? AIRPORTS.filter(ap =>
+        ap.icao.toLowerCase().startsWith(q) ||
+        ap.iata.toLowerCase().startsWith(q) ||
+        ap.city.toLowerCase().includes(q) ||
+        ap.name.toLowerCase().includes(q) ||
+        ap.country.toLowerCase().startsWith(q)
+      ).slice(0, 10)
+    : AIRPORTS.slice(0, 10);
+
+  acVisible[side] = list;
+  acFocusIndex[side] = -1;
+  renderDropdown(side, list);
+}
+
+function renderDropdown(side, list) {
+  const dd = document.getElementById(side + '-dropdown');
+  if (!list.length) { dd.classList.add('hidden'); return; }
+  dd.innerHTML = list.map((ap, i) => `
+    <div class="ac-item" data-i="${i}" onmousedown="selectAp('${side}',${i})">
+      <div class="ac-item-icao">${ap.icao}</div>
+      <div class="ac-item-iata">${ap.iata}</div>
+      <div class="ac-item-body">
+        <div class="ac-item-city">${ap.city}, ${ap.country}</div>
+        <div class="ac-item-name">${ap.name}</div>
+      </div>
+      <div class="tier-dot tier-${ap.tier}"></div>
+    </div>`).join('');
+  dd.classList.remove('hidden');
+}
+
+function acFocus(side) {
+  clearTimeout(blurTimer[side]);
+  acFilter(side);
+}
+
+function acBlur(side) {
+  blurTimer[side] = setTimeout(() => {
+    document.getElementById(side + '-dropdown').classList.add('hidden');
+  }, 150);
+}
+
+function acKey(e, side) {
+  const dd = document.getElementById(side + '-dropdown');
+  const list = acVisible[side];
+  if (dd.classList.contains('hidden') || !list.length) return;
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    acFocusIndex[side] = Math.min(acFocusIndex[side] + 1, list.length - 1);
+    highlightItem(side);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    acFocusIndex[side] = Math.max(acFocusIndex[side] - 1, 0);
+    highlightItem(side);
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    const idx = acFocusIndex[side] >= 0 ? acFocusIndex[side] : 0;
+    selectAp(side, idx);
+  } else if (e.key === 'Escape') {
+    dd.classList.add('hidden');
+  }
+}
+
+function highlightItem(side) {
+  const items = document.querySelectorAll(`#${side}-dropdown .ac-item`);
+  items.forEach((el, i) => el.classList.toggle('focused', i === acFocusIndex[side]));
+  const focused = items[acFocusIndex[side]];
+  if (focused) focused.scrollIntoView({ block: 'nearest' });
+}
+
+function selectAp(side, idx) {
+  const ap = acVisible[side][idx];
+  if (!ap) return;
+
+  if (side === 'dep') depAp = ap; else arrAp = ap;
+
+  const input = document.getElementById(side + '-input');
+  input.value = ap.icao + ' · ' + ap.city + ', ' + ap.country;
+  input.classList.add('has-value');
+  document.getElementById(side + '-dropdown').classList.add('hidden');
+  calculate();
+}
+
+function clearAp(side) {
+  if (side === 'dep') depAp = null; else arrAp = null;
+  const input = document.getElementById(side + '-input');
+  input.value = '';
+  input.classList.remove('has-value');
+  input.focus();
+  showEmpty();
+}
+
+function swapAirports() {
+  const tmpAp = depAp; depAp = arrAp; arrAp = tmpAp;
+  const depInput = document.getElementById('dep-input');
+  const arrInput = document.getElementById('arr-input');
+  const tmpVal = depInput.value; depInput.value = arrInput.value; arrInput.value = tmpVal;
+  const tmpCls = depInput.classList.contains('has-value');
+  depInput.classList.toggle('has-value', arrInput.classList.contains('has-value'));
+  arrInput.classList.toggle('has-value', tmpCls);
+  calculate();
+}
+
+// ── RETURN TOGGLE ──────────────────────────────────────────────────────────────
+function toggleReturn() {
+  isReturn = !isReturn;
+  const track = document.getElementById('return-toggle');
+  const label = document.getElementById('return-label');
+  track.classList.toggle('on', isReturn);
+  label.textContent = isReturn ? 'Return (×1.8 — incl. 10% discount)' : 'One way';
+  calculate();
+}
+
+// ── ACTION BUTTONS ─────────────────────────────────────────────────────────────
+function createQuote() {
+  if (!depAp || !arrAp) return;
+  const pax  = document.getElementById('inp-pax').value;
+  const date = document.getElementById('inp-date').value;
+  const tbody = document.getElementById('results-tbody');
+  const rec = tbody ? tbody.querySelector('tr.recommended') : null;
+  const midEst = rec ? (rec.querySelector('td:nth-child(3)')?.textContent || '') + ' – ' + (rec.querySelector('td:nth-child(4)')?.textContent || '') : '';
+
+  try {
+    localStorage.setItem('tj_quote_prefill', JSON.stringify({
+      route: depAp.icao + ' → ' + arrAp.icao,
+      from: depAp.city + ' (' + depAp.icao + ')',
+      to: arrAp.city + ' (' + arrAp.icao + ')',
+      pax, date, estimate: midEst, isReturn,
+    }));
+  } catch(e) {}
+
+  if (window.parent && window.parent !== window) {
+    try { window.parent.showTool('quotes'); return; } catch(e) {}
+  }
+}
+
+function checkEmptyLegs() {
+  window.open('https://www.charterpad.com', '_blank', 'noopener');
+  setTimeout(() => window.open('https://www.skyaccess.com', '_blank', 'noopener'), 200);
+  setTimeout(() => window.open('https://www.returnjet.com', '_blank', 'noopener'), 400);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+document.getElementById('inp-date').valueAsDate = new Date();
+document.addEventListener('click', e => {
+  ['dep','arr'].forEach(side => {
+    if (!document.getElementById(side + '-input').contains(e.target)) {
+      document.getElementById(side + '-dropdown').classList.add('hidden');
+    }
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TISA Jets CRM</title>
+<style>
+  :root {
+    --bg: #f7f8fb;
+    --panel: #ffffff;
+    --border: #e4e7ec;
+    --text: #101828;
+    --muted: #667085;
+    --accent: #1f4ed8;
+    --accent-soft: #eef2ff;
+    --success: #027a48;
+    --success-soft: #ecfdf3;
+    --warning: #b54708;
+    --warning-soft: #fffaeb;
+    --danger: #b42318;
+    --danger-soft: #fef3f2;
+    --shadow: 0 1px 2px rgba(16,24,40,0.04), 0 1px 3px rgba(16,24,40,0.06);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.45;
+  }
+  .app { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+
+  /* Sidebar */
+  .sidebar {
+    background: #0b1739;
+    color: #cfd5e6;
+    padding: 20px 16px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 24px; color: white;
+  }
+  .brand-logo {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: linear-gradient(135deg, #4f6df5, #1f4ed8);
+    display: grid; place-items: center; font-weight: 700;
+  }
+  .brand-name { font-weight: 600; font-size: 15px; letter-spacing: 0.2px; }
+  .brand-sub { font-size: 11px; color: #8b94ad; }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 8px;
+    cursor: pointer; color: #cfd5e6; font-size: 13px;
+    user-select: none;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.06); color: white; }
+  .nav-item.active { background: rgba(79,109,245,0.18); color: white; }
+  .nav-item .icon { width: 16px; height: 16px; opacity: 0.9; }
+  .nav-spacer { flex: 1; }
+  .user-card {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px; border-radius: 10px;
+    background: rgba(255,255,255,0.04);
+  }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: #4f6df5; color: white;
+    display: grid; place-items: center;
+    font-weight: 600; font-size: 12px;
+  }
+  .user-name { color: white; font-size: 13px; font-weight: 500; }
+  .user-role { font-size: 11px; color: #8b94ad; }
+
+  /* Main */
+  .main { display: flex; flex-direction: column; min-width: 0; }
+  .topbar {
+    height: 60px; background: white;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center;
+    padding: 0 28px; gap: 16px;
+  }
+  .topbar h1 { font-size: 18px; margin: 0; font-weight: 600; }
+  .topbar .search {
+    flex: 1; max-width: 420px;
+    position: relative;
+  }
+  .topbar .search input {
+    width: 100%; padding: 8px 12px 8px 34px;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--bg); font-size: 13px;
+    outline: none;
+  }
+  .topbar .search input:focus { border-color: var(--accent); background: white; }
+  .topbar .search svg {
+    position: absolute; left: 10px; top: 9px;
+    width: 16px; height: 16px; color: var(--muted);
+  }
+  .content { padding: 24px 28px; flex: 1; overflow-y: auto; }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px; border-radius: 8px;
+    font-size: 13px; font-weight: 500;
+    border: 1px solid var(--border); background: white;
+    cursor: pointer; color: var(--text);
+    transition: all 0.15s;
+  }
+  .btn:hover { background: var(--bg); }
+  .btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
+  .btn-primary:hover { background: #1740b8; }
+  .btn-danger { color: var(--danger); border-color: #fecdca; }
+  .btn-danger:hover { background: var(--danger-soft); }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .btn-icon {
+    padding: 6px; width: 30px; height: 30px;
+    display: grid; place-items: center;
+  }
+
+  /* Cards / panels */
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+  }
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .card-header h2 { margin: 0; font-size: 16px; font-weight: 600; }
+  .card-body { padding: 16px 20px; }
+  .card-body.no-pad { padding: 0; }
+
+  /* Dashboard stats */
+  .stats {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 16px; margin-bottom: 24px;
+  }
+  .stat {
+    background: white; border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px 20px;
+    box-shadow: var(--shadow);
+  }
+  .stat-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 500; }
+  .stat-value { font-size: 26px; font-weight: 700; margin-top: 6px; }
+  .stat-trend { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; }
+  th, td {
+    text-align: left; padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  th {
+    background: var(--bg); color: var(--muted);
+    font-weight: 500; font-size: 12px;
+    text-transform: uppercase; letter-spacing: 0.4px;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr.row-hover:hover { background: var(--bg); cursor: pointer; }
+
+  /* Badges */
+  .badge {
+    display: inline-flex; align-items: center;
+    padding: 3px 9px; border-radius: 999px;
+    font-size: 11px; font-weight: 500;
+    background: var(--bg); color: var(--muted);
+  }
+  .badge-lead { background: #f0f4ff; color: #1f4ed8; }
+  .badge-qualified { background: #ecfdf3; color: #027a48; }
+  .badge-proposal { background: #fffaeb; color: #b54708; }
+  .badge-negotiation { background: #fdf4ff; color: #9333ea; }
+  .badge-won { background: #ecfdf3; color: #027a48; }
+  .badge-lost { background: var(--danger-soft); color: var(--danger); }
+
+  /* Pipeline kanban */
+  .kanban {
+    display: grid; grid-template-columns: repeat(6, minmax(220px, 1fr));
+    gap: 14px; overflow-x: auto; padding-bottom: 8px;
+  }
+  .kanban-col {
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 12px;
+    min-height: 400px;
+  }
+  .kanban-col-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px; font-size: 12px; font-weight: 600;
+    color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .kanban-count {
+    background: white; border: 1px solid var(--border);
+    padding: 1px 8px; border-radius: 999px; font-size: 11px;
+  }
+  .deal-card {
+    background: white; border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px; margin-bottom: 8px;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .deal-card:hover { border-color: var(--accent); box-shadow: var(--shadow); }
+  .deal-card.dragging { opacity: 0.4; }
+  .deal-name { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+  .deal-meta { font-size: 11px; color: var(--muted); }
+  .deal-value { font-size: 13px; font-weight: 600; color: var(--success); margin-top: 6px; }
+
+  /* Form / modal */
+  .modal-bg {
+    position: fixed; inset: 0;
+    background: rgba(16,24,40,0.5);
+    display: none; align-items: center; justify-content: center;
+    z-index: 100; padding: 24px;
+  }
+  .modal-bg.open { display: flex; }
+  .modal {
+    background: white; border-radius: 12px;
+    width: 100%; max-width: 560px;
+    max-height: 90vh; overflow-y: auto;
+    box-shadow: 0 20px 25px rgba(0,0,0,0.2);
+  }
+  .modal-header {
+    padding: 18px 24px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-header h3 { margin: 0; font-size: 16px; }
+  .modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--muted); padding: 0; line-height: 1; }
+  .modal-body { padding: 20px 24px; }
+  .modal-footer {
+    padding: 14px 24px; border-top: 1px solid var(--border);
+    display: flex; justify-content: flex-end; gap: 10px;
+  }
+  .form-row { display: grid; gap: 14px; }
+  .form-row.two-col { grid-template-columns: 1fr 1fr; }
+  label { font-size: 12px; color: var(--muted); font-weight: 500; display: block; margin-bottom: 4px; }
+  input[type=text], input[type=email], input[type=tel], input[type=number], input[type=date], select, textarea {
+    width: 100%; padding: 8px 12px;
+    border: 1px solid var(--border); border-radius: 7px;
+    font-size: 13px; font-family: inherit;
+    background: white; outline: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  textarea { resize: vertical; min-height: 80px; }
+
+  /* Detail panel */
+  .detail-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; }
+  .detail-row { display: grid; grid-template-columns: 130px 1fr; padding: 9px 0; font-size: 13px; }
+  .detail-row .lbl { color: var(--muted); font-size: 12px; }
+  .timeline-item {
+    padding: 12px 0; border-bottom: 1px solid var(--border);
+    display: grid; grid-template-columns: auto 1fr; gap: 12px;
+  }
+  .timeline-item:last-child { border-bottom: none; }
+  .timeline-dot {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent-soft); color: var(--accent);
+    display: grid; place-items: center; font-size: 14px;
+  }
+  .timeline-title { font-size: 13px; font-weight: 500; }
+  .timeline-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .timeline-body { font-size: 12px; color: var(--text); margin-top: 4px; }
+
+  /* Misc */
+  .empty {
+    padding: 60px 20px; text-align: center; color: var(--muted);
+  }
+  .empty-title { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .checkbox { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+  .task-row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--border); }
+  .task-row.done .task-title { text-decoration: line-through; color: var(--muted); }
+  .task-title { font-size: 13px; }
+  .task-meta { font-size: 11px; color: var(--muted); }
+  .due-soon { color: var(--warning); font-weight: 500; }
+  .due-overdue { color: var(--danger); font-weight: 500; }
+  .row-actions { display: flex; gap: 6px; }
+  .filter-bar { display: flex; gap: 10px; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .filter-bar select { width: auto; min-width: 120px; }
+  .filter-bar input { width: auto; min-width: 200px; }
+  .tag { font-size: 11px; padding: 2px 7px; border-radius: 4px; background: var(--accent-soft); color: var(--accent); }
+  .urgency-badge { display: inline-flex; align-items: center; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+  .urgency-urgent { background: var(--warning-soft); color: var(--warning); }
+  .urgency-very-urgent { background: var(--danger-soft); color: var(--danger); }
+  hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+  /* Client classification */
+  .class-dot {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    flex-shrink: 0; cursor: pointer; position: relative; vertical-align: middle;
+  }
+  .class-dot.cls-A { background: #12b76a; }
+  .class-dot.cls-B { background: #f79009; }
+  .class-dot.cls-C { background: #f04438; }
+  .class-dot.cls-none { background: transparent; border: 1.5px dashed #d0d5dd; opacity: 0; transition: opacity 0.12s; }
+  tr:hover .class-dot.cls-none { opacity: 1; }
+  .class-dot[data-tip]:hover::after {
+    content: attr(data-tip);
+    position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+    background: #101828; color: white; font-size: 11px; white-space: nowrap;
+    padding: 3px 8px; border-radius: 5px; pointer-events: none; z-index: 50;
+  }
+  .class-filter-dot {
+    width: 11px; height: 11px; border-radius: 50%; cursor: pointer;
+    flex-shrink: 0; border: 2px solid transparent; transition: border-color 0.12s;
+  }
+  .class-filter-dot.cls-A { background: #12b76a; }
+  .class-filter-dot.cls-B { background: #f79009; }
+  .class-filter-dot.cls-C { background: #f04438; }
+  .class-filter-dot.cls-active { border-color: #101828; }
+  .cls-picker { display: flex; align-items: center; gap: 10px; padding-top: 4px; }
+  .cls-picker-dot {
+    width: 14px; height: 14px; border-radius: 50%; cursor: pointer;
+    outline: 2px solid transparent; outline-offset: 2px; transition: outline-color 0.12s;
+  }
+  .cls-picker-dot.cls-A { background: #12b76a; }
+  .cls-picker-dot.cls-B { background: #f79009; }
+  .cls-picker-dot.cls-C { background: #f04438; }
+  .cls-picker-dot.selected { outline-color: #101828; }
+
+  /* Sync indicator */
+  .sync-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 10px; border-radius: 999px;
+    font-size: 12px; font-weight: 500;
+    background: var(--bg); color: var(--muted);
+    border: 1px solid var(--border);
+    cursor: pointer; user-select: none;
+  }
+  .sync-pill:hover { background: white; }
+  .sync-pill .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--muted);
+  }
+  .sync-pill.synced .dot { background: var(--success); }
+  .sync-pill.syncing .dot { background: var(--accent); animation: pulse 1s infinite; }
+  .sync-pill.error .dot { background: var(--danger); }
+  .sync-pill.offline .dot { background: var(--warning); }
+  .sync-pill.disabled .dot { background: var(--muted); }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+  .toast {
+    position: fixed; bottom: 20px; right: 20px;
+    background: #101828; color: white;
+    padding: 10px 16px; border-radius: 8px;
+    font-size: 13px; z-index: 200;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    animation: toast-in 0.2s ease-out;
+  }
+  @keyframes toast-in { from { transform: translateY(20px); opacity: 0; } }
+
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .detail-grid { grid-template-columns: 1fr; }
+    .kanban { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">T</div>
+      <div>
+        <div class="brand-name">TISA Jets</div>
+        <div class="brand-sub">CRM</div>
+      </div>
+    </div>
+    <div class="nav-item active" data-view="dashboard">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item" data-view="contacts">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Contacts
+    </div>
+    <div class="nav-item" data-view="deals">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg>
+      Pipeline
+    </div>
+    <div class="nav-item" data-view="tasks">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Tasks
+    </div>
+
+    <div class="nav-spacer"></div>
+
+    <div class="user-card">
+      <div class="avatar">EY</div>
+      <div>
+        <div class="user-name">Elad Y.</div>
+        <div class="user-role">TISA Jets</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="topbar">
+      <h1 id="pageTitle">Dashboard</h1>
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" id="globalSearch" placeholder="Search contacts, deals, tasks..."/>
+      </div>
+      <div class="sync-pill disabled" id="syncPill" title="Click to configure sync">
+        <span class="dot"></span><span id="syncLabel">Local only</span>
+      </div>
+      <button class="btn btn-primary" id="primaryAction">+ New</button>
+    </div>
+    <div class="content" id="content"></div>
+  </main>
+</div>
+
+<!-- Modal -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">New</h3>
+      <button class="modal-close" id="modalClose">&times;</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer">
+      <button class="btn" id="modalCancel">Cancel</button>
+      <button class="btn btn-primary" id="modalSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================
+   STATE & STORAGE
+   ========================= */
+const STORAGE_KEY = 'tisa_jets_crm_v1';
+const STAGES = ['Lead', 'Qualified', 'Proposal', 'Negotiation', 'Won', 'Lost'];
+const TEAM = ['Elad Y.', 'Sarah K.', 'Marcus L.', 'Daniela R.'];
+
+const defaultData = {
+  contacts: [
+    { id: 'c1', name: 'James Whitfield', company: 'Whitfield Capital', email: 'james@whitfieldcap.com', phone: '+1 212 555 0188', role: 'Managing Partner', owner: 'Elad Y.', tags: ['VIP', 'Repeat'], notes: 'Prefers Gulfstream G650. Always books last minute. Family includes wife and 2 kids.', createdAt: '2026-04-12' },
+    { id: 'c2', name: 'Sofia Marchetti', company: 'Marchetti Holdings', email: 's.marchetti@marchetti.it', phone: '+39 02 5555 1234', role: 'CEO', owner: 'Sarah K.', tags: ['Europe'], notes: 'Frequent Milan-Nice route. Pet-friendly aircraft only.', createdAt: '2026-03-22' },
+    { id: 'c3', name: 'Robert Chen', company: 'Pacific Ventures', email: 'rchen@pacventures.com', phone: '+1 415 555 0142', role: 'Founder', owner: 'Marcus L.', tags: ['West Coast'], notes: 'Tech founder. Prefers light jets for short hops. Allergic to nuts.', createdAt: '2026-04-30' },
+    { id: 'c4', name: 'Amelia Foster', company: 'Foster Group', email: 'a.foster@fostergroup.co.uk', phone: '+44 20 7555 4421', role: 'Director', owner: 'Daniela R.', tags: ['Europe', 'New'], notes: 'New inquiry. Looking for transatlantic options.', createdAt: '2026-05-02' },
+    { id: 'c5', name: 'Hassan Al-Rashid', company: 'Al-Rashid Industries', email: 'hassan@al-rashid.ae', phone: '+971 4 555 6789', role: 'CFO', owner: 'Elad Y.', tags: ['VIP', 'Middle East'], notes: 'Books for entire family + entourage of 10. Always wants Global 7500.', createdAt: '2026-02-15' },
+  ],
+  deals: [
+    { id: 'd1', name: 'Whitfield NYC-Aspen Charter', contactId: 'c1', value: 78000, stage: 'Won', owner: 'Elad Y.', closeDate: '2026-05-04', notes: 'Round trip, 6 pax, G650.' },
+    { id: 'd2', name: 'Marchetti Summer Schedule', contactId: 'c2', value: 245000, stage: 'Negotiation', owner: 'Sarah K.', closeDate: '2026-05-18', notes: 'Block of 12 flights across Europe.' },
+    { id: 'd3', name: 'Pacific Ventures SFO-NYC', contactId: 'c3', value: 42000, stage: 'Proposal', owner: 'Marcus L.', closeDate: '2026-05-15', notes: 'Citation X+ recommended.' },
+    { id: 'd4', name: 'Foster Group LHR-JFK', contactId: 'c4', value: 65000, stage: 'Qualified', owner: 'Daniela R.', closeDate: '2026-05-25', notes: 'Awaiting confirmation on dates.' },
+    { id: 'd5', name: 'Al-Rashid Family Trip DXB-LON', contactId: 'c5', value: 320000, stage: 'Lead', owner: 'Elad Y.', closeDate: '2026-06-10', notes: 'Initial inquiry for July dates.' },
+    { id: 'd6', name: 'Whitfield Q3 Block Hours', contactId: 'c1', value: 180000, stage: 'Proposal', owner: 'Elad Y.', closeDate: '2026-06-01', notes: '50 hours block agreement.' },
+  ],
+  tasks: [
+    { id: 't1', title: 'Send proposal to Robert Chen', dueDate: '2026-05-12', done: false, contactId: 'c3', owner: 'Marcus L.', urgency: 'not-urgent', remindersSent: [] },
+    { id: 't2', title: 'Follow up with Foster Group on dates', dueDate: '2026-05-13', done: false, contactId: 'c4', owner: 'Daniela R.', urgency: 'not-urgent', remindersSent: [] },
+    { id: 't3', title: 'Confirm catering for Whitfield trip', dueDate: '2026-05-04', done: true, contactId: 'c1', owner: 'Elad Y.', urgency: 'not-urgent', remindersSent: [] },
+    { id: 't4', title: 'Call Hassan re: Global 7500 availability', dueDate: '2026-05-11', done: false, contactId: 'c5', owner: 'Elad Y.', urgency: 'not-urgent', remindersSent: [] },
+    { id: 't5', title: 'Draft contract for Marchetti block', dueDate: '2026-05-15', done: false, contactId: 'c2', owner: 'Sarah K.', urgency: 'not-urgent', remindersSent: [] },
+  ],
+  activities: [
+    { id: 'a1', contactId: 'c1', type: 'call', title: 'Discovery call', body: 'Discussed upcoming summer travel needs. Family of 4. Prefers G650.', date: '2026-04-12' },
+    { id: 'a2', contactId: 'c1', type: 'email', title: 'Sent quote for NYC-Aspen', body: 'Quote $78k for round trip on G650.', date: '2026-04-28' },
+    { id: 'a3', contactId: 'c2', type: 'meeting', title: 'In-person meeting Milan', body: 'Reviewed summer schedule. Will need 12 flights between June-August.', date: '2026-03-22' },
+    { id: 'a4', contactId: 'c5', type: 'call', title: 'Initial inquiry', body: 'Hassan called about DXB-LON in July. Wants Global 7500 for 12 pax.', date: '2026-05-08' },
+  ],
+};
+
+let state = loadState();
+let currentView = 'dashboard';
+let modalContext = null;
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return JSON.parse(JSON.stringify(defaultData));
+}
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+function uid(prefix) { return prefix + Math.random().toString(36).slice(2, 9); }
+function fmtMoney(n) { return '$' + (n || 0).toLocaleString(); }
+function fmtDate(d) {
+  if (!d) return '—';
+  const date = new Date(d);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+function today() { return new Date().toISOString().slice(0, 10); }
+function daysUntil(d) {
+  if (!d) return null;
+  const diff = (new Date(d) - new Date(today())) / (1000*60*60*24);
+  return Math.round(diff);
+}
+function escapeHtml(s) { return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function findContact(id) { return state.contacts.find(c => c.id === id); }
+function stageBadge(stage) {
+  const cls = {Lead:'badge-lead',Qualified:'badge-qualified',Proposal:'badge-proposal',Negotiation:'badge-negotiation',Won:'badge-won',Lost:'badge-lost'}[stage] || '';
+  return `<span class="badge ${cls}">${stage}</span>`;
+}
+function initials(name) {
+  return (name||'').split(' ').map(p => p[0]).filter(Boolean).slice(0,2).join('').toUpperCase();
+}
+
+/* =========================
+   SYNC ENGINE (Google Sheets backend)
+   ========================= */
+const SYNC_CONFIG_KEY = 'tisa_jets_crm_sync_v1';
+
+const SYNC_DEFAULTS = {
+  webAppUrl:    'https://script.google.com/macros/s/AKfycbwbDVYoiy2gg42CH29Z8IZzaPAKEC4WXfUJ6ybD4G6xcqDRq4gJ5xrbd3sjqAOS2jB2vA/exec',
+  sharedSecret: 'tisa-jets-9f3kP2xQwL8mNvR7',
+  enabled:      true,
+};
+
+function loadSyncConfig() {
+  try {
+    const raw = localStorage.getItem(SYNC_CONFIG_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return { ...SYNC_DEFAULTS };
+}
+
+let syncConfig = loadSyncConfig();
+let syncStatus = { state: 'disabled', message: 'Local only', lastSyncAt: null };
+let pollTimer = null;
+let pendingOps = []; // queue of {action, table, record/id} when offline
+
+function saveSyncConfig() { localStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify(syncConfig)); }
+
+function updateSyncPill() {
+  const pill = document.getElementById('syncPill');
+  const label = document.getElementById('syncLabel');
+  if (!pill) return;
+  pill.classList.remove('synced','syncing','error','offline','disabled');
+  pill.classList.add(syncStatus.state);
+  let text = syncStatus.message;
+  if (syncStatus.state === 'synced' && syncStatus.lastSyncAt) {
+    const ago = Math.round((Date.now() - syncStatus.lastSyncAt) / 1000);
+    text = ago < 5 ? 'Synced just now' : ago < 60 ? `Synced ${ago}s ago` : `Synced ${Math.round(ago/60)}m ago`;
+  }
+  label.textContent = text;
+}
+
+async function syncRequest(method, body) {
+  if (!syncConfig.enabled || !syncConfig.webAppUrl) throw new Error('Sync not configured');
+  let url = syncConfig.webAppUrl;
+  let opts = { method };
+  if (method === 'GET') {
+    url += (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(syncConfig.sharedSecret);
+  } else {
+    // Use text/plain to avoid CORS preflight (Apps Script can't respond to OPTIONS)
+    opts.headers = { 'Content-Type': 'text/plain;charset=utf-8' };
+    opts.body = JSON.stringify({ ...body, token: syncConfig.sharedSecret });
+  }
+  const res = await fetch(url, opts);
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const json = await res.json();
+  if (json.error) throw new Error(json.error);
+  return json;
+}
+
+async function syncPull(silent) {
+  if (!syncConfig.enabled) return;
+  try {
+    if (!silent) { syncStatus = { state: 'syncing', message: 'Pulling…' }; updateSyncPill(); }
+    const json = await syncRequest('GET');
+    const data = json.data || {};
+    ['contacts','deals','tasks','activities'].forEach(t => {
+      if (Array.isArray(data[t])) state[t] = data[t];
+    });
+    saveState();
+    syncStatus = { state: 'synced', message: 'Synced', lastSyncAt: Date.now() };
+    updateSyncPill();
+    if (currentView) rerender();
+  } catch(err) {
+    syncStatus = { state: 'error', message: 'Sync error: ' + err.message };
+    updateSyncPill();
+  }
+}
+
+async function syncUpsert(table, record) {
+  if (!syncConfig.enabled) return;
+  record.updatedAt = new Date().toISOString();
+  try {
+    syncStatus = { state: 'syncing', message: 'Saving…' }; updateSyncPill();
+    await syncRequest('POST', { action: 'upsert', table, record });
+    syncStatus = { state: 'synced', message: 'Synced', lastSyncAt: Date.now() };
+    updateSyncPill();
+  } catch(err) {
+    pendingOps.push({ action: 'upsert', table, record });
+    syncStatus = { state: 'offline', message: 'Offline (queued)' };
+    updateSyncPill();
+  }
+}
+
+async function syncDelete(table, id) {
+  if (!syncConfig.enabled) return;
+  try {
+    syncStatus = { state: 'syncing', message: 'Deleting…' }; updateSyncPill();
+    await syncRequest('POST', { action: 'delete', table, id });
+    syncStatus = { state: 'synced', message: 'Synced', lastSyncAt: Date.now() };
+    updateSyncPill();
+  } catch(err) {
+    pendingOps.push({ action: 'delete', table, id });
+    syncStatus = { state: 'offline', message: 'Offline (queued)' };
+    updateSyncPill();
+  }
+}
+
+async function syncBulkPush() {
+  if (!syncConfig.enabled) { toast('Configure sync first'); return; }
+  try {
+    syncStatus = { state: 'syncing', message: 'Pushing all data…' }; updateSyncPill();
+    await syncRequest('POST', { action: 'bulk_replace', state });
+    syncStatus = { state: 'synced', message: 'Synced', lastSyncAt: Date.now() };
+    updateSyncPill();
+    toast('All data pushed to Google Sheet');
+  } catch(err) {
+    syncStatus = { state: 'error', message: 'Push failed: ' + err.message };
+    updateSyncPill();
+    toast('Push failed: ' + err.message);
+  }
+}
+
+async function flushPendingOps() {
+  if (pendingOps.length === 0) return;
+  const ops = pendingOps.slice();
+  pendingOps = [];
+  for (const op of ops) {
+    try {
+      await syncRequest('POST', op);
+    } catch(e) {
+      pendingOps.push(op);
+      return; // stop on first failure
+    }
+  }
+  syncStatus = { state: 'synced', message: 'Synced', lastSyncAt: Date.now() };
+  updateSyncPill();
+}
+
+function startPolling() {
+  if (pollTimer) clearInterval(pollTimer);
+  if (!syncConfig.enabled) return;
+  pollTimer = setInterval(() => {
+    flushPendingOps().then(() => syncPull(true));
+  }, 30000);
+}
+
+function toast(msg) {
+  const el = document.createElement('div');
+  el.className = 'toast'; el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2800);
+}
+
+function openSyncSettings() {
+  modalContext = { type: 'sync' };
+  document.getElementById('modalTitle').textContent = 'Sync Settings';
+  const linked = syncConfig.enabled && syncConfig.webAppUrl;
+  document.getElementById('modalBody').innerHTML = `
+    <div class="form-row">
+      ${linked ? `<div style="padding:10px;background:var(--success-soft);border-radius:7px;font-size:12px;color:var(--success);">✓ Connected · ${escapeHtml(syncStatus.message)}</div>` :
+                  `<div style="padding:10px;background:var(--warning-soft);border-radius:7px;font-size:12px;color:var(--warning);">Sync is off. Data lives in this browser only.</div>`}
+      <div><label>Apps Script Web App URL</label>
+        <input id="f_url" type="text" placeholder="https://script.google.com/macros/s/.../exec" value="${escapeHtml(syncConfig.webAppUrl||'')}"/>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">From Deploy → Web App in your Apps Script project.</div>
+      </div>
+      <div><label>Shared Secret</label>
+        <input id="f_secret" type="text" placeholder="The SHARED_SECRET you set in Apps Script" value="${escapeHtml(syncConfig.sharedSecret||'')}"/>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">Must match the SHARED_SECRET constant in the Apps Script.</div>
+      </div>
+      <hr/>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-sm" onclick="event.preventDefault();testConnection();">Test connection</button>
+        <button class="btn btn-sm" onclick="event.preventDefault();syncPull();toast('Pulled from server');">Pull from server</button>
+        <button class="btn btn-sm" onclick="event.preventDefault();if(confirm('This replaces all data on the Google Sheet with your local data. Continue?')){syncBulkPush();}">Push local data to server</button>
+        ${linked ? `<button class="btn btn-sm btn-danger" onclick="event.preventDefault();disconnectSync();">Disconnect</button>` : ''}
+      </div>
+      <div style="font-size:11px;color:var(--muted);padding:8px;background:var(--bg);border-radius:7px;">
+        Tip: On a teammate's CRM, paste the same URL + secret. Click "Pull from server" — they'll see all your data and changes will sync automatically every 30 seconds.
+      </div>
+    </div>
+  `;
+  document.getElementById('modal').classList.add('open');
+}
+
+async function testConnection() {
+  const url = document.getElementById('f_url').value.trim();
+  const secret = document.getElementById('f_secret').value.trim();
+  if (!url || !secret) { toast('Enter URL and secret first'); return; }
+  const oldConfig = { ...syncConfig };
+  syncConfig = { webAppUrl: url, sharedSecret: secret, enabled: true };
+  try {
+    await syncRequest('GET');
+    saveSyncConfig();
+    syncStatus = { state: 'synced', message: 'Connected', lastSyncAt: Date.now() };
+    updateSyncPill();
+    toast('✓ Connection successful — sync is on');
+    startPolling();
+    openSyncSettings(); // refresh modal
+  } catch(err) {
+    syncConfig = oldConfig;
+    toast('✗ Connection failed: ' + err.message);
+  }
+}
+
+function disconnectSync() {
+  if (!confirm('Disconnect from Google Sheets? Your local data stays here.')) return;
+  syncConfig = { webAppUrl: '', sharedSecret: '', enabled: false };
+  saveSyncConfig();
+  syncStatus = { state: 'disabled', message: 'Local only' };
+  updateSyncPill();
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+  closeModal();
+}
+
+/* =========================
+   VIEWS
+   ========================= */
+function renderDashboard() {
+  document.getElementById('pageTitle').textContent = 'Dashboard';
+  const won = state.deals.filter(d => d.stage === 'Won');
+  const pipeline = state.deals.filter(d => !['Won','Lost'].includes(d.stage));
+  const totalPipeline = pipeline.reduce((s,d) => s + (d.value||0), 0);
+  const totalWon = won.reduce((s,d) => s + (d.value||0), 0);
+  const openTasks = state.tasks.filter(t => !t.done).length;
+  const overdueTasks = state.tasks.filter(t => !t.done && daysUntil(t.dueDate) < 0).length;
+
+  const upcomingTasks = state.tasks
+    .filter(t => !t.done)
+    .sort((a,b) => (a.dueDate||'').localeCompare(b.dueDate||''))
+    .slice(0, 6);
+
+  const recentDeals = [...state.deals]
+    .sort((a,b) => (b.closeDate||'').localeCompare(a.closeDate||''))
+    .slice(0, 5);
+
+  // Stage breakdown
+  const byStage = STAGES.map(s => ({
+    stage: s,
+    count: state.deals.filter(d => d.stage === s).length,
+    value: state.deals.filter(d => d.stage === s).reduce((sum,d) => sum + (d.value||0), 0),
+  }));
+
+  document.getElementById('content').innerHTML = `
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">Contacts</div>
+        <div class="stat-value">${state.contacts.length}</div>
+        <div class="stat-trend">All time</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Pipeline Value</div>
+        <div class="stat-value">${fmtMoney(totalPipeline)}</div>
+        <div class="stat-trend">${pipeline.length} open deals</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Closed Won</div>
+        <div class="stat-value">${fmtMoney(totalWon)}</div>
+        <div class="stat-trend">${won.length} deals</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Open Tasks</div>
+        <div class="stat-value">${openTasks}</div>
+        <div class="stat-trend">${overdueTasks ? `<span class="due-overdue">${overdueTasks} overdue</span>` : 'On track'}</div>
+      </div>
+    </div>
+
+    <div class="detail-grid">
+      <div class="card">
+        <div class="card-header"><h2>Pipeline by Stage</h2></div>
+        <div class="card-body">
+          ${byStage.map(s => `
+            <div style="margin-bottom: 12px;">
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
+                <span>${stageBadge(s.stage)} <span style="color:var(--muted);">${s.count} deals</span></span>
+                <span style="font-weight:600;">${fmtMoney(s.value)}</span>
+              </div>
+              <div style="height:6px;background:var(--bg);border-radius:3px;overflow:hidden;">
+                <div style="height:100%;background:var(--accent);width:${Math.min(100, (s.value / Math.max(1, totalPipeline + totalWon)) * 100)}%;"></div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h2>Upcoming Tasks</h2></div>
+        <div class="card-body no-pad">
+          ${upcomingTasks.length === 0 ? '<div class="empty"><div class="empty-title">All caught up</div><div>No open tasks</div></div>' :
+            upcomingTasks.map(t => {
+              const dn = daysUntil(t.dueDate);
+              const cls = dn < 0 ? 'due-overdue' : dn <= 2 ? 'due-soon' : '';
+              const contact = findContact(t.contactId);
+              return `
+                <div class="task-row">
+                  <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTask('${t.id}')"/>
+                  <div>
+                    <div class="task-title">${escapeHtml(t.title)}</div>
+                    <div class="task-meta">${contact ? escapeHtml(contact.name) + ' • ' : ''}<span class="${cls}">${fmtDate(t.dueDate)}</span></div>
+                  </div>
+                  <div class="task-meta">${escapeHtml(t.owner || '')}</div>
+                </div>`;
+            }).join('')
+          }
+        </div>
+      </div>
+    </div>
+
+    <div style="height:20px;"></div>
+
+    <div class="card">
+      <div class="card-header"><h2>Recent Deals</h2></div>
+      <div class="card-body no-pad">
+        <table>
+          <thead><tr><th>Deal</th><th>Contact</th><th>Stage</th><th>Value</th><th>Close Date</th><th>Owner</th></tr></thead>
+          <tbody>
+            ${recentDeals.map(d => {
+              const c = findContact(d.contactId);
+              return `<tr class="row-hover" onclick="openDeal('${d.id}')">
+                <td>${escapeHtml(d.name)}</td>
+                <td>${c ? escapeHtml(c.name) : '—'}</td>
+                <td>${stageBadge(d.stage)}</td>
+                <td><strong>${fmtMoney(d.value)}</strong></td>
+                <td>${fmtDate(d.closeDate)}</td>
+                <td>${escapeHtml(d.owner||'')}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function renderContacts() {
+  document.getElementById('pageTitle').textContent = 'Contacts';
+  const q = (document.getElementById('globalSearch').value || '').toLowerCase();
+  const ownerFilter = state._contactOwnerFilter || '';
+  const classFilter = state._contactClassFilter || '';
+  let rows = state.contacts.slice().sort((a,b) => a.name.localeCompare(b.name));
+  if (q) rows = rows.filter(c => [c.name, c.company, c.email, c.role, (c.tags||[]).join(' ')].join(' ').toLowerCase().includes(q));
+  if (ownerFilter) rows = rows.filter(c => c.owner === ownerFilter);
+  if (classFilter) rows = rows.filter(c => (c.class || '') === classFilter);
+
+  document.getElementById('content').innerHTML = `
+    <div class="card">
+      <div class="filter-bar">
+        <strong style="font-size:13px;">${rows.length} contacts</strong>
+        <span style="flex:1;"></span>
+        <label style="margin:0;">Owner:</label>
+        <select id="contactOwnerFilter">
+          <option value="">All</option>
+          ${TEAM.map(t => `<option value="${t}" ${ownerFilter===t?'selected':''}>${t}</option>`).join('')}
+        </select>
+        <div style="display:flex;align-items:center;gap:5px;margin-left:2px;" title="Filter by class">
+          <span class="class-filter-dot cls-A${classFilter==='A'?' cls-active':''}" onclick="setClassFilter('A')" title="Class A"></span>
+          <span class="class-filter-dot cls-B${classFilter==='B'?' cls-active':''}" onclick="setClassFilter('B')" title="Class B"></span>
+          <span class="class-filter-dot cls-C${classFilter==='C'?' cls-active':''}" onclick="setClassFilter('C')" title="Class C"></span>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openContactModal()">+ Add Contact</button>
+      </div>
+      <table>
+        <thead><tr><th>Name</th><th>Company</th><th>Email</th><th>Phone</th><th>Owner</th><th>Tags</th><th></th></tr></thead>
+        <tbody>
+          ${rows.length === 0 ? `<tr><td colspan="7"><div class="empty"><div class="empty-title">No contacts</div><div>Click "Add Contact" to get started</div></div></td></tr>` :
+          rows.map(c => `
+            <tr class="row-hover" onclick="openContact('${c.id}')">
+              <td><div style="display:flex;align-items:center;gap:10px;"><div class="avatar" style="width:28px;height:28px;font-size:11px;">${initials(c.name)}</div><div><div style="display:flex;align-items:center;gap:5px;"><strong>${escapeHtml(c.name)}</strong><span class="class-dot ${c.class?'cls-'+c.class:'cls-none'}" data-tip="${c.class?'Class '+c.class:'Classify'}" onclick="cycleContactClass(event,'${c.id}')"></span></div><div style="font-size:11px;color:var(--muted);">${escapeHtml(c.role||'')}</div></div></div></td>
+              <td>${escapeHtml(c.company||'')}</td>
+              <td>${escapeHtml(c.email||'')}</td>
+              <td>${escapeHtml(c.phone||'')}</td>
+              <td>${escapeHtml(c.owner||'')}</td>
+              <td>${(c.tags||[]).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join(' ')}</td>
+              <td><div class="row-actions" onclick="event.stopPropagation()">
+                <button class="btn btn-sm" onclick="openContactModal('${c.id}')">Edit</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteContact('${c.id}')">Delete</button>
+              </div></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+  const sel = document.getElementById('contactOwnerFilter');
+  if (sel) sel.onchange = (e) => { state._contactOwnerFilter = e.target.value; renderContacts(); };
+}
+
+function renderDeals() {
+  document.getElementById('pageTitle').textContent = 'Pipeline';
+  const q = (document.getElementById('globalSearch').value || '').toLowerCase();
+  const ownerFilter = state._dealOwnerFilter || '';
+  let deals = state.deals.slice();
+  if (q) deals = deals.filter(d => {
+    const c = findContact(d.contactId);
+    return [d.name, c?.name, c?.company, d.notes].join(' ').toLowerCase().includes(q);
+  });
+  if (ownerFilter) deals = deals.filter(d => d.owner === ownerFilter);
+
+  const totalValue = deals.filter(d => !['Won','Lost'].includes(d.stage)).reduce((s,d) => s + (d.value||0), 0);
+
+  document.getElementById('content').innerHTML = `
+    <div class="card" style="margin-bottom:16px;">
+      <div class="filter-bar">
+        <strong style="font-size:13px;">${deals.length} deals · ${fmtMoney(totalValue)} open pipeline</strong>
+        <span style="flex:1;"></span>
+        <label style="margin:0;">Owner:</label>
+        <select id="dealOwnerFilter">
+          <option value="">All</option>
+          ${TEAM.map(t => `<option value="${t}" ${ownerFilter===t?'selected':''}>${t}</option>`).join('')}
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="openDealModal()">+ Add Deal</button>
+      </div>
+    </div>
+    <div class="kanban">
+      ${STAGES.map(stage => {
+        const stageDeals = deals.filter(d => d.stage === stage);
+        const sum = stageDeals.reduce((s,d) => s + (d.value||0), 0);
+        return `
+          <div class="kanban-col" data-stage="${stage}" ondragover="event.preventDefault()" ondrop="onDealDrop(event, '${stage}')">
+            <div class="kanban-col-header">
+              <span>${stage}</span>
+              <span class="kanban-count">${stageDeals.length} · ${fmtMoney(sum)}</span>
+            </div>
+            ${stageDeals.map(d => {
+              const c = findContact(d.contactId);
+              return `<div class="deal-card" draggable="true" data-deal="${d.id}" ondragstart="onDealDragStart(event)" ondragend="onDealDragEnd(event)" onclick="openDeal('${d.id}')">
+                <div class="deal-name">${escapeHtml(d.name)}</div>
+                <div class="deal-meta">${c ? escapeHtml(c.name) + ' · ' : ''}${escapeHtml(d.owner||'')}</div>
+                <div class="deal-value">${fmtMoney(d.value)}</div>
+                <div class="deal-meta" style="margin-top:4px;">Close: ${fmtDate(d.closeDate)}</div>
+              </div>`;
+            }).join('')}
+          </div>`;
+      }).join('')}
+    </div>
+  `;
+  const sel = document.getElementById('dealOwnerFilter');
+  if (sel) sel.onchange = (e) => { state._dealOwnerFilter = e.target.value; renderDeals(); };
+}
+
+function renderTasks() {
+  document.getElementById('pageTitle').textContent = 'Tasks';
+  const q = (document.getElementById('globalSearch').value || '').toLowerCase();
+  const filter = state._taskFilter || 'open';
+  let tasks = state.tasks.slice();
+  if (filter === 'open') tasks = tasks.filter(t => !t.done);
+  else if (filter === 'done') tasks = tasks.filter(t => t.done);
+  else if (filter === 'overdue') tasks = tasks.filter(t => !t.done && daysUntil(t.dueDate) < 0);
+  if (q) tasks = tasks.filter(t => t.title.toLowerCase().includes(q));
+  tasks.sort((a,b) => (a.dueDate||'').localeCompare(b.dueDate||''));
+
+  document.getElementById('content').innerHTML = `
+    <div class="card">
+      <div class="filter-bar">
+        <strong style="font-size:13px;">${tasks.length} tasks</strong>
+        <span style="flex:1;"></span>
+        <select id="taskFilter">
+          <option value="open" ${filter==='open'?'selected':''}>Open</option>
+          <option value="overdue" ${filter==='overdue'?'selected':''}>Overdue</option>
+          <option value="done" ${filter==='done'?'selected':''}>Completed</option>
+          <option value="all" ${filter==='all'?'selected':''}>All</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="openTaskModal()">+ Add Task</button>
+      </div>
+      <div>
+        ${tasks.length === 0 ? '<div class="empty"><div class="empty-title">No tasks</div><div>Click "Add Task" to create one</div></div>' :
+        tasks.map(t => {
+          const dn = daysUntil(t.dueDate);
+          const cls = t.done ? '' : (dn < 0 ? 'due-overdue' : dn <= 2 ? 'due-soon' : '');
+          const contact = findContact(t.contactId);
+          return `<div class="task-row ${t.done ? 'done' : ''}">
+            <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTask('${t.id}')"/>
+            <div onclick="openTaskModal('${t.id}')" style="cursor:pointer;">
+              <div class="task-title">${escapeHtml(t.title)}</div>
+              <div class="task-meta">${contact ? escapeHtml(contact.name) + ' • ' : ''}<span class="${cls}">${fmtDate(t.dueDate)}</span>${t.owner ? ' • ' + escapeHtml(t.owner) : ''}${t.urgency && t.urgency !== 'not-urgent' ? ` • <span class="urgency-badge urgency-${t.urgency}">${t.urgency === 'very-urgent' ? 'Very Urgent' : 'Urgent'}</span>` : ''}</div>
+            </div>
+            <div class="row-actions">
+              <button class="btn btn-sm" onclick="openTaskModal('${t.id}')">Edit</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteTask('${t.id}')">Delete</button>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
+  const sel = document.getElementById('taskFilter');
+  if (sel) sel.onchange = (e) => { state._taskFilter = e.target.value; renderTasks(); };
+}
+
+function renderContactDetail(contactId) {
+  const c = findContact(contactId);
+  if (!c) { setView('contacts'); return; }
+  document.getElementById('pageTitle').textContent = c.name;
+  const deals = state.deals.filter(d => d.contactId === c.id);
+  const tasks = state.tasks.filter(t => t.contactId === c.id);
+  const activities = state.activities.filter(a => a.contactId === c.id).sort((a,b) => (b.date||'').localeCompare(a.date||''));
+
+  document.getElementById('content').innerHTML = `
+    <div style="margin-bottom: 16px;">
+      <button class="btn btn-sm" onclick="setView('contacts')">← Back to contacts</button>
+    </div>
+    <div class="detail-grid">
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <div class="avatar" style="width:40px;height:40px;font-size:14px;">${initials(c.name)}</div>
+            <div style="flex:1;">
+              <h2 style="margin:0;">${escapeHtml(c.name)}</h2>
+              <div style="font-size:12px;color:var(--muted);">${escapeHtml(c.role||'')} ${c.company ? '· ' + escapeHtml(c.company) : ''}</div>
+            </div>
+            <button class="btn btn-sm" onclick="openContactModal('${c.id}')">Edit</button>
+          </div>
+          <div class="card-body">
+            <div class="detail-row"><div class="lbl">Email</div><div>${escapeHtml(c.email||'—')}</div></div>
+            <div class="detail-row"><div class="lbl">Phone</div><div>${escapeHtml(c.phone||'—')}</div></div>
+            <div class="detail-row"><div class="lbl">Company</div><div>${escapeHtml(c.company||'—')}</div></div>
+            <div class="detail-row"><div class="lbl">Owner</div><div>${escapeHtml(c.owner||'—')}</div></div>
+            <div class="detail-row"><div class="lbl">Tags</div><div>${(c.tags||[]).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join(' ') || '—'}</div></div>
+            <div class="detail-row"><div class="lbl">Notes</div><div>${escapeHtml(c.notes||'—').replace(/\n/g,'<br/>')}</div></div>
+          </div>
+        </div>
+
+        <div style="height:16px;"></div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2>Deals (${deals.length})</h2>
+            <span style="flex:1;"></span>
+            <button class="btn btn-sm" onclick="openDealModal(null, '${c.id}')">+ Add Deal</button>
+          </div>
+          <div class="card-body no-pad">
+            ${deals.length === 0 ? '<div class="empty"><div>No deals yet</div></div>' :
+              `<table><thead><tr><th>Name</th><th>Stage</th><th>Value</th><th>Close</th></tr></thead><tbody>
+                ${deals.map(d => `<tr class="row-hover" onclick="openDeal('${d.id}')">
+                  <td><strong>${escapeHtml(d.name)}</strong></td>
+                  <td>${stageBadge(d.stage)}</td>
+                  <td>${fmtMoney(d.value)}</td>
+                  <td>${fmtDate(d.closeDate)}</td>
+                </tr>`).join('')}
+              </tbody></table>`}
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <h2>Activity</h2>
+            <span style="flex:1;"></span>
+            <button class="btn btn-sm" onclick="openActivityModal(null, '${c.id}')">+ Log</button>
+          </div>
+          <div class="card-body">
+            ${activities.length === 0 ? '<div class="empty"><div>No activity logged</div></div>' :
+              activities.map(a => `
+                <div class="timeline-item">
+                  <div class="timeline-dot">${a.type === 'call' ? '📞' : a.type === 'email' ? '✉' : a.type === 'meeting' ? '🤝' : '•'}</div>
+                  <div>
+                    <div class="timeline-title">${escapeHtml(a.title)}</div>
+                    <div class="timeline-meta">${escapeHtml(a.type)} · ${fmtDate(a.date)}</div>
+                    <div class="timeline-body">${escapeHtml(a.body||'').replace(/\n/g,'<br/>')}</div>
+                  </div>
+                </div>`).join('')}
+          </div>
+        </div>
+
+        <div style="height:16px;"></div>
+
+        <div class="card">
+          <div class="card-header"><h2>Tasks (${tasks.filter(t=>!t.done).length} open)</h2></div>
+          <div class="card-body no-pad">
+            ${tasks.length === 0 ? '<div class="empty"><div>No tasks</div></div>' :
+              tasks.map(t => `<div class="task-row ${t.done?'done':''}">
+                <input type="checkbox" ${t.done?'checked':''} onchange="toggleTask('${t.id}')"/>
+                <div><div class="task-title">${escapeHtml(t.title)}</div><div class="task-meta">${fmtDate(t.dueDate)} · ${escapeHtml(t.owner||'')}${t.urgency && t.urgency !== 'not-urgent' ? ` · <span class="urgency-badge urgency-${t.urgency}">${t.urgency === 'very-urgent' ? 'Very Urgent' : 'Urgent'}</span>` : ''}</div></div>
+                <div></div>
+              </div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderDealDetail(dealId) {
+  const d = state.deals.find(x => x.id === dealId);
+  if (!d) { setView('deals'); return; }
+  const c = findContact(d.contactId);
+  document.getElementById('pageTitle').textContent = d.name;
+
+  document.getElementById('content').innerHTML = `
+    <div style="margin-bottom: 16px;">
+      <button class="btn btn-sm" onclick="setView('deals')">← Back to pipeline</button>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h2>${escapeHtml(d.name)}</h2>
+        <span style="flex:1;"></span>
+        ${stageBadge(d.stage)}
+        <button class="btn btn-sm" onclick="openDealModal('${d.id}')">Edit</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteDeal('${d.id}')">Delete</button>
+      </div>
+      <div class="card-body">
+        <div class="detail-row"><div class="lbl">Contact</div><div>${c ? `<a href="#" onclick="openContact('${c.id}');return false;">${escapeHtml(c.name)}</a> · ${escapeHtml(c.company||'')}` : '—'}</div></div>
+        <div class="detail-row"><div class="lbl">Value</div><div><strong>${fmtMoney(d.value)}</strong></div></div>
+        <div class="detail-row"><div class="lbl">Stage</div><div>${stageBadge(d.stage)}</div></div>
+        <div class="detail-row"><div class="lbl">Close Date</div><div>${fmtDate(d.closeDate)}</div></div>
+        <div class="detail-row"><div class="lbl">Owner</div><div>${escapeHtml(d.owner||'—')}</div></div>
+        <div class="detail-row"><div class="lbl">Notes</div><div>${escapeHtml(d.notes||'—').replace(/\n/g,'<br/>')}</div></div>
+      </div>
+    </div>
+  `;
+}
+
+/* =========================
+   MODALS
+   ========================= */
+function openContactModal(id) {
+  const c = id ? findContact(id) : null;
+  modalContext = { type: 'contact', id };
+  document.getElementById('modalTitle').textContent = id ? 'Edit Contact' : 'New Contact';
+  document.getElementById('modalBody').innerHTML = `
+    <div class="form-row">
+      <div class="form-row two-col">
+        <div><label>Name *</label><input id="f_name" type="text" value="${escapeHtml(c?.name||'')}"/></div>
+        <div><label>Company</label><input id="f_company" type="text" value="${escapeHtml(c?.company||'')}"/></div>
+      </div>
+      <div class="form-row two-col">
+        <div><label>Email</label><input id="f_email" type="email" value="${escapeHtml(c?.email||'')}"/></div>
+        <div><label>Phone</label><input id="f_phone" type="tel" value="${escapeHtml(c?.phone||'')}"/></div>
+      </div>
+      <div class="form-row two-col">
+        <div><label>Role</label><input id="f_role" type="text" value="${escapeHtml(c?.role||'')}"/></div>
+        <div><label>Owner</label><select id="f_owner">${TEAM.map(t => `<option value="${t}" ${c?.owner===t?'selected':''}>${t}</option>`).join('')}</select></div>
+      </div>
+      <div><label>Tags (comma separated)</label><input id="f_tags" type="text" value="${escapeHtml((c?.tags||[]).join(', '))}"/></div>
+      <div><label>Notes</label><textarea id="f_notes">${escapeHtml(c?.notes||'')}</textarea></div>
+      <div>
+        <label>Classification</label>
+        <div class="cls-picker">
+          <span class="cls-picker-dot cls-A${(c?.class||'')==='A'?' selected':''}" onclick="selectModalClass('A')" title="Class A — High potential"></span>
+          <span class="cls-picker-dot cls-B${(c?.class||'')==='B'?' selected':''}" onclick="selectModalClass('B')" title="Class B — Average potential"></span>
+          <span class="cls-picker-dot cls-C${(c?.class||'')==='C'?' selected':''}" onclick="selectModalClass('C')" title="Class C — Low potential"></span>
+          <input type="hidden" id="f_class" value="${c?.class||''}"/>
+          <span id="cls_label" style="font-size:12px;color:var(--muted);">${c?.class ? 'Class ' + c.class : 'Unclassified'}</span>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('modal').classList.add('open');
+  setTimeout(() => document.getElementById('f_name').focus(), 50);
+}
+
+function openDealModal(id, contactIdPreset) {
+  const d = id ? state.deals.find(x => x.id === id) : null;
+  modalContext = { type: 'deal', id };
+  document.getElementById('modalTitle').textContent = id ? 'Edit Deal' : 'New Deal';
+  document.getElementById('modalBody').innerHTML = `
+    <div class="form-row">
+      <div><label>Deal Name *</label><input id="f_name" type="text" value="${escapeHtml(d?.name||'')}"/></div>
+      <div class="form-row two-col">
+        <div><label>Contact</label><select id="f_contact"><option value="">—</option>${state.contacts.map(c => `<option value="${c.id}" ${(d?.contactId||contactIdPreset)===c.id?'selected':''}>${escapeHtml(c.name)}</option>`).join('')}</select></div>
+        <div><label>Owner</label><select id="f_owner">${TEAM.map(t => `<option value="${t}" ${d?.owner===t?'selected':''}>${t}</option>`).join('')}</select></div>
+      </div>
+      <div class="form-row two-col">
+        <div><label>Value ($)</label><input id="f_value" type="number" value="${d?.value||0}"/></div>
+        <div><label>Stage</label><select id="f_stage">${STAGES.map(s => `<option value="${s}" ${d?.stage===s?'selected':''}>${s}</option>`).join('')}</select></div>
+      </div>
+      <div><label>Expected Close</label><input id="f_closeDate" type="date" value="${d?.closeDate||''}"/></div>
+      <div><label>Notes</label><textarea id="f_notes">${escapeHtml(d?.notes||'')}</textarea></div>
+    </div>
+  `;
+  document.getElementById('modal').classList.add('open');
+  setTimeout(() => document.getElementById('f_name').focus(), 50);
+}
+
+function openTaskModal(id, contactIdPreset) {
+  const t = id ? state.tasks.find(x => x.id === id) : null;
+  modalContext = { type: 'task', id };
+  document.getElementById('modalTitle').textContent = id ? 'Edit Task' : 'New Task';
+  document.getElementById('modalBody').innerHTML = `
+    <div class="form-row">
+      <div><label>Title *</label><input id="f_title" type="text" value="${escapeHtml(t?.title||'')}"/></div>
+      <div class="form-row two-col">
+        <div><label>Due Date</label><input id="f_dueDate" type="date" value="${t?.dueDate||today()}"/></div>
+        <div><label>Owner</label><select id="f_owner">${TEAM.map(o => `<option value="${o}" ${t?.owner===o?'selected':''}>${o}</option>`).join('')}</select></div>
+      </div>
+      <div><label>Urgency &amp; Email Reminders</label><select id="f_urgency">
+        <option value="not-urgent" ${(t?.urgency||'not-urgent')==='not-urgent'?'selected':''}>Not Urgent — 1 reminder (1 day before)</option>
+        <option value="urgent" ${t?.urgency==='urgent'?'selected':''}>Urgent — 2 reminders (2 days + 1 day before)</option>
+        <option value="very-urgent" ${t?.urgency==='very-urgent'?'selected':''}>Very Urgent — 3 reminders (3, 2, 1 days before)</option>
+      </select></div>
+      <div><label>Related Contact</label><select id="f_contact"><option value="">—</option>${state.contacts.map(c => `<option value="${c.id}" ${(t?.contactId||contactIdPreset)===c.id?'selected':''}>${escapeHtml(c.name)}</option>`).join('')}</select></div>
+    </div>
+  `;
+  document.getElementById('modal').classList.add('open');
+  setTimeout(() => document.getElementById('f_title').focus(), 50);
+}
+
+function openActivityModal(id, contactIdPreset) {
+  const a = id ? state.activities.find(x => x.id === id) : null;
+  modalContext = { type: 'activity', id };
+  document.getElementById('modalTitle').textContent = id ? 'Edit Activity' : 'Log Activity';
+  document.getElementById('modalBody').innerHTML = `
+    <div class="form-row">
+      <div class="form-row two-col">
+        <div><label>Type</label><select id="f_type">
+          ${['call','email','meeting','note'].map(t => `<option value="${t}" ${a?.type===t?'selected':''}>${t.charAt(0).toUpperCase()+t.slice(1)}</option>`).join('')}
+        </select></div>
+        <div><label>Date</label><input id="f_date" type="date" value="${a?.date||today()}"/></div>
+      </div>
+      <div><label>Title *</label><input id="f_title" type="text" value="${escapeHtml(a?.title||'')}"/></div>
+      <div><label>Contact</label><select id="f_contact"><option value="">—</option>${state.contacts.map(c => `<option value="${c.id}" ${(a?.contactId||contactIdPreset)===c.id?'selected':''}>${escapeHtml(c.name)}</option>`).join('')}</select></div>
+      <div><label>Details</label><textarea id="f_body">${escapeHtml(a?.body||'')}</textarea></div>
+    </div>
+  `;
+  document.getElementById('modal').classList.add('open');
+  setTimeout(() => document.getElementById('f_title').focus(), 50);
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('open'); modalContext = null; }
+
+function saveModal() {
+  if (!modalContext) return;
+  const t = modalContext.type;
+  const id = modalContext.id;
+  const val = (k) => { const el = document.getElementById(k); return el ? el.value : ''; };
+
+  if (t === 'sync') {
+    const url = val('f_url').trim();
+    const secret = val('f_secret').trim();
+    if (!url || !secret) { toast('Enter URL and secret'); return; }
+    syncConfig = { webAppUrl: url, sharedSecret: secret, enabled: true };
+    saveSyncConfig();
+    syncStatus = { state: 'synced', message: 'Connected', lastSyncAt: Date.now() };
+    updateSyncPill();
+    startPolling();
+    closeModal();
+    toast('Sync enabled. Click the sync pill anytime to test or push data.');
+    return;
+  }
+
+  let savedObj = null, savedTable = null;
+  if (t === 'contact') {
+    const name = val('f_name').trim();
+    if (!name) { alert('Name is required'); return; }
+    const obj = {
+      id: id || uid('c'),
+      name, company: val('f_company'), email: val('f_email'),
+      phone: val('f_phone'), role: val('f_role'), owner: val('f_owner'),
+      tags: val('f_tags').split(',').map(s => s.trim()).filter(Boolean),
+      notes: val('f_notes'),
+      class: val('f_class') || '',
+      createdAt: id ? findContact(id).createdAt : today(),
+    };
+    if (id) {
+      const i = state.contacts.findIndex(c => c.id === id);
+      state.contacts[i] = obj;
+    } else state.contacts.push(obj);
+    savedObj = obj; savedTable = 'contacts';
+  } else if (t === 'deal') {
+    const name = val('f_name').trim();
+    if (!name) { alert('Deal name is required'); return; }
+    const obj = {
+      id: id || uid('d'),
+      name, contactId: val('f_contact'), owner: val('f_owner'),
+      value: Number(val('f_value')) || 0, stage: val('f_stage'),
+      closeDate: val('f_closeDate'), notes: val('f_notes'),
+    };
+    if (id) {
+      const i = state.deals.findIndex(d => d.id === id);
+      state.deals[i] = obj;
+    } else state.deals.push(obj);
+    savedObj = obj; savedTable = 'deals';
+  } else if (t === 'task') {
+    const title = val('f_title').trim();
+    if (!title) { alert('Title is required'); return; }
+    const existing = id ? state.tasks.find(x => x.id === id) : null;
+    const obj = {
+      id: id || uid('t'),
+      title, dueDate: val('f_dueDate'), owner: val('f_owner'),
+      contactId: val('f_contact'), done: existing ? existing.done : false,
+      urgency: val('f_urgency') || 'not-urgent',
+      remindersSent: existing ? (existing.remindersSent || []) : [],
+    };
+    if (id) {
+      const i = state.tasks.findIndex(x => x.id === id);
+      state.tasks[i] = obj;
+    } else state.tasks.push(obj);
+    savedObj = obj; savedTable = 'tasks';
+  } else if (t === 'activity') {
+    const title = val('f_title').trim();
+    if (!title) { alert('Title is required'); return; }
+    const obj = {
+      id: id || uid('a'),
+      type: val('f_type'), title, contactId: val('f_contact'),
+      body: val('f_body'), date: val('f_date'),
+    };
+    if (id) {
+      const i = state.activities.findIndex(x => x.id === id);
+      state.activities[i] = obj;
+    } else state.activities.push(obj);
+    savedObj = obj; savedTable = 'activities';
+  }
+  saveState();
+  if (savedTable && savedObj) syncUpsert(savedTable, savedObj);
+  closeModal();
+  rerender();
+}
+
+/* =========================
+   ACTIONS
+   ========================= */
+function deleteContact(id) {
+  if (!confirm('Delete this contact? Their deals and activities will keep references but the contact link will break.')) return;
+  state.contacts = state.contacts.filter(c => c.id !== id);
+  saveState(); syncDelete('contacts', id); rerender();
+}
+function deleteDeal(id) {
+  if (!confirm('Delete this deal?')) return;
+  state.deals = state.deals.filter(d => d.id !== id);
+  saveState(); syncDelete('deals', id);
+  if (currentView === 'dealDetail') setView('deals'); else rerender();
+}
+function deleteTask(id) {
+  if (!confirm('Delete this task?')) return;
+  state.tasks = state.tasks.filter(t => t.id !== id);
+  saveState(); syncDelete('tasks', id); rerender();
+}
+function toggleTask(id) {
+  const t = state.tasks.find(x => x.id === id);
+  if (t) { t.done = !t.done; saveState(); syncUpsert('tasks', t); rerender(); }
+}
+function openContact(id) { currentView = 'contactDetail'; currentDetailId = id; renderContactDetail(id); setNavActive('contacts'); }
+function openDeal(id) { currentView = 'dealDetail'; currentDetailId = id; renderDealDetail(id); setNavActive('deals'); }
+
+let currentDetailId = null;
+function setView(v) {
+  currentView = v;
+  setNavActive(v);
+  rerender();
+}
+function setNavActive(v) {
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.view === v);
+  });
+}
+function rerender() {
+  if (currentView === 'dashboard') renderDashboard();
+  else if (currentView === 'contacts') renderContacts();
+  else if (currentView === 'deals') renderDeals();
+  else if (currentView === 'tasks') renderTasks();
+  else if (currentView === 'contactDetail') renderContactDetail(currentDetailId);
+  else if (currentView === 'dealDetail') renderDealDetail(currentDetailId);
+}
+
+/* =========================
+   DRAG & DROP
+   ========================= */
+let draggedDealId = null;
+function onDealDragStart(e) {
+  draggedDealId = e.currentTarget.dataset.deal;
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+function onDealDragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+}
+function onDealDrop(e, stage) {
+  e.preventDefault();
+  if (!draggedDealId) return;
+  const d = state.deals.find(x => x.id === draggedDealId);
+  if (d && d.stage !== stage) {
+    d.stage = stage;
+    saveState();
+    syncUpsert('deals', d);
+    rerender();
+  }
+  draggedDealId = null;
+}
+
+/* =========================
+   CLASSIFICATION
+   ========================= */
+function cycleContactClass(e, id) {
+  e.stopPropagation();
+  const c = findContact(id);
+  if (!c) return;
+  const cycle = { '': 'A', 'A': 'B', 'B': 'C', 'C': '' };
+  c.class = cycle[c.class || ''];
+  saveState();
+  syncUpsert('contacts', c);
+  rerender();
+}
+
+function setClassFilter(cls) {
+  state._contactClassFilter = state._contactClassFilter === cls ? '' : cls;
+  renderContacts();
+}
+
+function selectModalClass(cls) {
+  const hidden = document.getElementById('f_class');
+  const label  = document.getElementById('cls_label');
+  if (!hidden) return;
+  hidden.value = hidden.value === cls ? '' : cls;
+  label.textContent = hidden.value ? 'Class ' + hidden.value : 'Unclassified';
+  document.querySelectorAll('.cls-picker-dot').forEach(el => el.classList.remove('selected'));
+  if (hidden.value) {
+    const active = document.querySelector('.cls-picker-dot.cls-' + hidden.value);
+    if (active) active.classList.add('selected');
+  }
+}
+
+/* =========================
+   EVENTS
+   ========================= */
+document.querySelectorAll('.nav-item').forEach(el => {
+  el.addEventListener('click', () => setView(el.dataset.view));
+});
+document.getElementById('modalClose').onclick = closeModal;
+document.getElementById('modalCancel').onclick = closeModal;
+document.getElementById('modalSave').onclick = saveModal;
+document.getElementById('modal').addEventListener('click', (e) => {
+  if (e.target.id === 'modal') closeModal();
+});
+document.getElementById('primaryAction').onclick = () => {
+  if (currentView === 'contacts' || currentView === 'contactDetail') openContactModal();
+  else if (currentView === 'deals' || currentView === 'dealDetail') openDealModal();
+  else if (currentView === 'tasks') openTaskModal();
+  else openContactModal();
+};
+document.getElementById('globalSearch').addEventListener('input', () => {
+  if (['contacts','deals','tasks'].includes(currentView)) rerender();
+});
+
+// Keyboard
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeModal();
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault();
+    document.getElementById('globalSearch').focus();
+  }
+});
+
+// Sync pill click
+document.getElementById('syncPill').onclick = openSyncSettings;
+
+// Initial render
+rerender();
+
+// Initialize sync if configured
+if (syncConfig.enabled && syncConfig.webAppUrl) {
+  syncStatus = { state: 'syncing', message: 'Connecting…' };
+  updateSyncPill();
+  syncPull().then(() => startPolling());
+} else {
+  updateSyncPill();
+}
+</script>
+</body>
+</html>

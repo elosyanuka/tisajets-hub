@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TisaJets Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; font-family: 'Poppins', sans-serif; background: #0F1835; }
+
+  /* ── LOGIN ── */
+  #screen-login {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #0F1835 0%, #1a2a5e 100%);
+  }
+  .login-card {
+    background: white; border-radius: 16px;
+    padding: 48px 40px; width: 380px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+    text-align: center;
+  }
+  .login-logo {
+    width: 64px; height: 64px; border-radius: 16px;
+    background: linear-gradient(135deg, #C5920D, #e8b020);
+    display: grid; place-items: center; margin: 0 auto 20px;
+    font-size: 28px; color: white;
+  }
+  .login-card h1 { font-size: 22px; font-weight: 700; color: #0F1835; margin-bottom: 4px; }
+  .login-card p  { font-size: 13px; color: #667085; margin-bottom: 28px; }
+  .login-card input {
+    width: 100%; padding: 12px 16px; border: 1.5px solid #e4e7ec;
+    border-radius: 10px; font-size: 14px; font-family: inherit;
+    outline: none; margin-bottom: 14px; text-align: center; letter-spacing: 2px;
+  }
+  .login-card input:focus { border-color: #C5920D; }
+  .login-card button {
+    width: 100%; padding: 13px; border: none; border-radius: 10px;
+    background: #0F1835; color: white; font-size: 14px;
+    font-family: inherit; font-weight: 600; cursor: pointer;
+  }
+  .login-card button:hover { background: #1a2a5e; }
+  .login-error { color: #b42318; font-size: 12px; margin-top: 10px; display: none; }
+
+  /* ── SHELL ── */
+  #screen-app {
+    display: none; height: 100vh;
+    grid-template-columns: 220px 1fr;
+  }
+  #screen-app.show { display: grid; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    background: #0F1835;
+    display: flex; flex-direction: column;
+    padding: 20px 12px; gap: 4px;
+    border-right: 1px solid rgba(255,255,255,0.06);
+  }
+  .brand {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 8px 24px;
+  }
+  .brand-icon {
+    width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+    background: linear-gradient(135deg, #C5920D, #e8b020);
+    display: grid; place-items: center; font-size: 16px; color: white;
+  }
+  .brand-text { line-height: 1.2; }
+  .brand-name { font-size: 14px; font-weight: 700; color: white; }
+  .brand-sub  { font-size: 10px; color: #8b94ad; }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 10px;
+    cursor: pointer; color: #9aa5c0; font-size: 13px; font-weight: 500;
+    border: none; background: none; width: 100%; text-align: left;
+    transition: all 0.15s;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.06); color: #cfd5e6; }
+  .nav-item.active { background: rgba(197,146,13,0.15); color: #C5920D; }
+  .nav-item svg { width: 17px; height: 17px; flex-shrink: 0; }
+
+  .nav-spacer { flex: 1; }
+  .sidebar-footer {
+    padding: 12px 8px 4px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    font-size: 11px; color: #4a5568; text-align: center;
+  }
+
+  /* ── CONTENT ── */
+  .content { position: relative; background: #f7f8fb; }
+  .tool-frame {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    border: none; display: none;
+  }
+  .tool-frame.active { display: block; }
+
+  .loading-overlay {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: #f7f8fb; z-index: 10; display: none;
+  }
+  .loading-overlay.show { display: flex; }
+  .spinner {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 3px solid #e4e7ec;
+    border-top-color: #C5920D;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── MOBILE TOPBAR ── */
+  .mobile-topbar {
+    display: none;
+    align-items: center; justify-content: space-between;
+    background: #0F1835; padding: 12px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    position: relative; z-index: 30;
+  }
+  .mobile-brand {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .mobile-brand-icon {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: linear-gradient(135deg, #C5920D, #e8b020);
+    display: grid; place-items: center; font-size: 14px; color: white;
+  }
+  .mobile-brand-name { font-size: 14px; font-weight: 700; color: white; }
+  .hamburger {
+    background: none; border: none; cursor: pointer;
+    padding: 6px; display: flex; flex-direction: column;
+    gap: 5px; align-items: flex-end;
+  }
+  .hamburger span {
+    display: block; height: 2px; background: white; border-radius: 2px;
+    transition: all 0.2s;
+  }
+  .hamburger span:nth-child(1) { width: 22px; }
+  .hamburger span:nth-child(2) { width: 16px; }
+  .hamburger span:nth-child(3) { width: 22px; }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); width: 22px; }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); width: 22px; }
+
+  /* ── SIDEBAR OVERLAY (mobile) ── */
+  .sidebar-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5); z-index: 20;
+  }
+  .sidebar-overlay.show { display: block; }
+
+  @media (max-width: 640px) {
+    .mobile-topbar { display: flex; }
+
+    #screen-app {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr;
+    }
+
+    .sidebar {
+      position: fixed; top: 0; left: 0; bottom: 0;
+      width: 240px; z-index: 25;
+      transform: translateX(-100%);
+      transition: transform 0.25s ease;
+    }
+    .sidebar.open { transform: translateX(0); }
+
+    .content { grid-column: 1; }
+
+    .tool-frame { position: absolute; inset: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="screen-login">
+  <div class="login-card">
+    <div class="login-logo">✈</div>
+    <h1>TisaJets Hub</h1>
+    <p>Internal tools — authorized access only</p>
+    <input id="pw" type="password" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <button onclick="doLogin()">Sign In</button>
+    <div class="login-error" id="login-error">Incorrect password</div>
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div id="screen-app">
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+<div class="mobile-topbar">
+  <div class="mobile-brand">
+    <div class="mobile-brand-icon">✈</div>
+    <div class="mobile-brand-name">TisaJets</div>
+  </div>
+  <button class="hamburger" id="hamburger" onclick="toggleSidebar()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">✈</div>
+      <div class="brand-text">
+        <div class="brand-name">TisaJets</div>
+        <div class="brand-sub">Internal Hub</div>
+      </div>
+    </div>
+
+    <button class="nav-item active" data-tool="crm" onclick="showTool('crm')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-5-3.87M9 20H4v-2a4 4 0 015-3.87m0 0A4 4 0 1112 8a4 4 0 01-3 3.87zm8-7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+      CRM
+    </button>
+
+    <button class="nav-item" data-tool="quotes" onclick="showTool('quotes')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h5l5 5v11a2 2 0 01-2 2z"/></svg>
+      Quote Generator
+    </button>
+
+    <button class="nav-item" data-tool="commission" onclick="showTool('commission')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7H6a2 2 0 00-2 2v9a2 2 0 002 2h9a2 2 0 002-2v-3M13 3h5m0 0v5m0-5L10 11"/></svg>
+      Commission Calc
+    </button>
+
+    <button class="nav-item" data-tool="estimator" onclick="showTool('estimator')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 19h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+      Estimator
+    </button>
+
+    <button class="nav-item" data-tool="confirmations" onclick="showTool('confirmations')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      Confirmations
+    </button>
+
+    <button class="nav-item" data-tool="invoices" onclick="showTool('invoices')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+      Invoices
+    </button>
+
+    <button class="nav-item" data-tool="agreements" onclick="showTool('agreements')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/></svg>
+      Agreements
+    </button>
+
+    <div class="nav-spacer"></div>
+    <div class="sidebar-footer">TisaJets © 2026</div>
+  </aside>
+
+  <div class="content">
+    <div class="loading-overlay" id="loader"><div class="spinner"></div></div>
+    <iframe class="tool-frame active" id="frame-crm"           title="CRM"></iframe>
+    <iframe class="tool-frame"        id="frame-quotes"        title="Quotes"></iframe>
+    <iframe class="tool-frame"        id="frame-commission"    title="Commission"></iframe>
+    <iframe class="tool-frame"        id="frame-estimator"     title="Estimator"></iframe>
+    <iframe class="tool-frame"        id="frame-confirmations" title="Confirmations"></iframe>
+    <iframe class="tool-frame"        id="frame-invoices"      title="Invoices"></iframe>
+    <iframe class="tool-frame"        id="frame-agreements"    title="Agreements"></iframe>
+  </div>
+</div>
+
+<script>
+const PASS        = '3l2D2005'
+const HUB_KEY     = 'tj_hub_auth'
+
+const TOOLS = {
+  crm:           { src: './crm.html',                    authKey: null },
+  quotes:        { src: './tisajets-quotes.html',        authKey: 'tj_quotes_auth' },
+  commission:    { src: './tisajets-commission.html',    authKey: 'tj_cc_auth' },
+  estimator:     { src: './tisajets-estimator.html',     authKey: null },
+  confirmations: { src: './tisajets-confirmations.html', authKey: 'tj_auth' },
+  invoices:      { src: './tisajets-invoices.html',      authKey: 'tj_inv_auth' },
+  agreements:    { src: './tisajets-agreements.html',    authKey: 'tj_agr_auth' },
+}
+
+const loaded   = {}
+const reloaded = {}
+
+// ── Auth ──
+function doLogin() {
+  const pw = document.getElementById('pw').value
+  if (pw === PASS) {
+    sessionStorage.setItem(HUB_KEY, '1')
+    launchApp()
+  } else {
+    document.getElementById('login-error').style.display = 'block'
+    document.getElementById('pw').value = ''
+    document.getElementById('pw').focus()
+  }
+}
+
+function launchApp() {
+  document.getElementById('screen-login').style.display = 'none'
+  document.getElementById('screen-app').classList.add('show')
+  showTool('crm')
+}
+
+if (sessionStorage.getItem(HUB_KEY) === '1') launchApp()
+
+// ── Mobile sidebar ──
+function toggleSidebar() {
+  const open = document.querySelector('.sidebar').classList.toggle('open')
+  document.getElementById('hamburger').classList.toggle('open', open)
+  document.getElementById('sidebar-overlay').classList.toggle('show', open)
+}
+function closeSidebar() {
+  document.querySelector('.sidebar').classList.remove('open')
+  document.getElementById('hamburger').classList.remove('open')
+  document.getElementById('sidebar-overlay').classList.remove('show')
+}
+
+// ── Tool switching ──
+function showTool(name) {
+  closeSidebar()
+  // swap nav highlight
+  document.querySelectorAll('.nav-item').forEach(el =>
+    el.classList.toggle('active', el.dataset.tool === name)
+  )
+
+  // swap visible iframe
+  document.querySelectorAll('.tool-frame').forEach(f => f.classList.remove('active'))
+  document.getElementById('frame-' + name).classList.add('active')
+
+  // lazy-load on first visit
+  if (!loaded[name]) {
+    loaded[name] = true
+    const tool   = TOOLS[name]
+    const iframe = document.getElementById('frame-' + name)
+
+    if (tool.authKey) {
+      // Show spinner while loading
+      const loader = document.getElementById('loader')
+      loader.classList.add('show')
+
+      iframe.onload = () => {
+        try {
+          iframe.contentWindow.sessionStorage.setItem(tool.authKey, '1')
+          if (!reloaded[name]) {
+            reloaded[name] = true
+            iframe.contentWindow.location.reload()
+            return
+          }
+        } catch(e) {}
+        loader.classList.remove('show')
+      }
+    }
+
+    iframe.src = tool.src
+  }
+}
+</script>
+</body>
+</html>

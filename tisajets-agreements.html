@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>TisaJets — Agreement Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Poppins',sans-serif;background:#f4f6fb;color:#1a1a2e;min-height:100vh}
+:root{--navy:#0F1835;--gold:#C5920D;--white:#fff;--border:#e2e8f0;--muted:#64748b}
+.screen{display:none}
+.screen.active{display:flex}
+
+/* LOGIN */
+#screen-login{align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,var(--navy) 0%,#1a2a5e 100%)}
+.login-card{background:var(--white);border-radius:16px;padding:48px 40px;width:360px;box-shadow:0 20px 60px rgba(0,0,0,.3);text-align:center}
+.login-logo{font-size:28px;font-weight:700;color:var(--navy);letter-spacing:2px;margin-bottom:4px}
+.login-sub{font-size:12px;color:var(--gold);font-weight:500;margin-bottom:32px;letter-spacing:1px}
+.login-card input{width:100%;padding:14px 16px;border:2px solid var(--border);border-radius:10px;font-size:15px;font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s;margin-bottom:16px;text-align:center;letter-spacing:4px}
+.login-card input:focus{border-color:var(--gold)}
+.login-card button{width:100%;padding:14px;background:var(--navy);color:var(--white);border:none;border-radius:10px;font-size:15px;font-weight:600;font-family:'Poppins',sans-serif;cursor:pointer}
+.login-error{color:#e53e3e;font-size:13px;margin-top:12px;display:none}
+
+/* SHELL */
+#screen-dashboard,#screen-form,#screen-settings{flex-direction:column;min-height:100vh}
+.topbar{background:var(--navy);padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.topbar-brand{font-size:20px;font-weight:700;color:var(--gold);letter-spacing:2px}
+.topbar-sub{font-size:11px;color:rgba(255,255,255,.5);font-weight:400;margin-left:8px}
+.topbar-nav button{background:none;border:1.5px solid rgba(255,255,255,.2);color:rgba(255,255,255,.8);padding:8px 16px;border-radius:8px;font-family:'Poppins',sans-serif;font-size:13px;cursor:pointer;margin-left:6px}
+.topbar-nav button:hover{background:var(--gold);color:var(--navy);border-color:var(--gold)}
+
+/* DASHBOARD */
+.dash-body{padding:32px;flex:1}
+.dash-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.dash-title{font-size:22px;font-weight:700;color:var(--navy)}
+.btn-primary{background:var(--navy);color:var(--white);border:none;padding:12px 24px;border-radius:10px;font-family:'Poppins',sans-serif;font-size:14px;font-weight:600;cursor:pointer}
+.btn-gold{background:var(--gold);color:var(--white);border:none;padding:12px 24px;border-radius:10px;font-family:'Poppins',sans-serif;font-size:14px;font-weight:600;cursor:pointer}
+.dash-controls{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.dash-search{flex:1;min-width:200px;padding:11px 16px;border:1.5px solid var(--border);border-radius:10px;font-family:'Poppins',sans-serif;font-size:14px;outline:none}
+.dash-search:focus{border-color:var(--gold)}
+select{padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Poppins',sans-serif;font-size:14px;outline:none;background:var(--white);cursor:pointer}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;margin-bottom:28px}
+.stat-card{background:var(--white);border-radius:12px;padding:20px;border-left:4px solid var(--gold);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.stat-val{font-size:26px;font-weight:700;color:var(--navy)}
+.stat-lbl{font-size:12px;color:var(--muted);margin-top:2px}
+.table-wrap{background:var(--white);border-radius:14px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+table{width:100%;border-collapse:collapse}
+thead{background:var(--navy)}
+thead th{color:var(--white);padding:14px 16px;text-align:left;font-size:12px;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
+tbody tr:hover{background:#f8faff}
+tbody td{padding:14px 16px;font-size:13.5px;vertical-align:middle}
+.badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-draft{background:#fef3c7;color:#92400e}
+.badge-sent{background:#dbeafe;color:#1e40af}
+.badge-signed{background:#d1fae5;color:#065f46}
+.badge-cancelled{background:#fee2e2;color:#991b1b}
+.row-actions{display:flex;gap:6px}
+.btn-sm{padding:6px 12px;border:none;border-radius:6px;font-size:12px;font-weight:600;font-family:'Poppins',sans-serif;cursor:pointer}
+.btn-edit{background:#e0e7ff;color:#3730a3}
+.btn-pdf{background:#d1fae5;color:#065f46}
+.btn-dup{background:#fef3c7;color:#92400e}
+.btn-del{background:#fee2e2;color:#991b1b}
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
+
+/* FORM */
+.form-body{padding:32px;flex:1;max-width:860px;margin:0 auto;width:100%}
+.form-title{font-size:20px;font-weight:700;color:var(--navy);margin-bottom:24px}
+.form-card{background:var(--white);border-radius:14px;padding:28px;box-shadow:0 2px 12px rgba(0,0,0,.06);margin-bottom:20px}
+.form-card h3{font-size:13px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.8px;margin-bottom:18px;padding-bottom:10px;border-bottom:2px solid var(--gold)}
+.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.form-group input,.form-group select,.form-group textarea{padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Poppins',sans-serif;font-size:14px;outline:none;transition:border-color .2s;background:var(--white)}
+.form-group input:focus,.form-group select:focus{border-color:var(--gold)}
+.form-group textarea{resize:vertical;min-height:80px}
+.form-actions{display:flex;gap:12px;justify-content:flex-end;margin-top:8px}
+.btn-secondary{background:var(--white);color:var(--navy);border:2px solid var(--navy);padding:12px 24px;border-radius:10px;font-family:'Poppins',sans-serif;font-size:14px;font-weight:600;cursor:pointer}
+
+/* SETTINGS */
+.settings-body{padding:32px;flex:1;max-width:640px}
+.settings-card{background:var(--white);border-radius:14px;padding:28px;box-shadow:0 2px 12px rgba(0,0,0,.06);margin-bottom:20px}
+.settings-card h3{font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px}
+.sync-status{padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;margin-top:12px;display:none}
+.sync-ok{background:#d1fae5;color:#065f46}
+.sync-err{background:#fee2e2;color:#991b1b}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;background:var(--navy);color:var(--white);padding:14px 22px;border-radius:10px;font-size:14px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.3);transform:translateY(80px);opacity:0;transition:all .3s;z-index:9999;pointer-events:none}
+#toast.show{transform:translateY(0);opacity:1}
+
+/* PREVIEW MODAL */
+.btn-preview{background:#ede9fe;color:#4c1d95}
+#preview-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1000;overflow-y:auto;padding:32px 16px}
+#preview-overlay.open{display:flex;justify-content:center;align-items:flex-start}
+#preview-modal{background:#fff;width:794px;max-width:100%;border-radius:4px;box-shadow:0 24px 80px rgba(0,0,0,.5);margin:auto;overflow:hidden;font-family:'Times New Roman',serif;font-size:11pt;color:#111;line-height:1.5}
+.pm-header{background:#0F1835;padding:18px 30px 16px}
+.pm-brand{font-family:'Poppins',sans-serif;font-size:22pt;font-weight:700;color:#C5920D;letter-spacing:2px}
+.pm-contact{font-family:'Poppins',sans-serif;font-size:8pt;color:rgba(255,255,255,.8);margin-top:4px}
+.pm-body{padding:30px 36px}
+.pm-title{font-family:'Poppins',sans-serif;font-size:16pt;font-weight:700;color:#0F1835;text-align:center;margin-bottom:4px}
+.pm-gold-line{height:2px;background:#C5920D;margin-bottom:16px}
+.pm-meta{display:flex;justify-content:space-between;font-size:9pt;margin-bottom:18px}
+.pm-meta span b{color:#0F1835}
+.pm-section-title{font-family:'Poppins',sans-serif;font-size:10pt;font-weight:700;color:#0F1835;margin:18px 0 8px}
+.pm-divider{height:1px;background:#ddd;margin-bottom:12px}
+.pm-gold-divider{height:1px;background:#C5920D;margin:16px 0}
+.pm-parties p{margin-bottom:6px;font-size:10pt}
+.pm-parties .party-name{font-weight:700;color:#0F1835}
+.pm-parties .party-label{color:#666;font-size:9.5pt}
+.pm-parties .party-detail{color:#444;padding-left:12px;font-size:9.5pt}
+.pm-table{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:9.5pt}
+.pm-table thead tr{background:#0F1835;color:#fff}
+.pm-table thead th{padding:7px 10px;text-align:left;font-family:'Poppins',sans-serif;font-weight:600;font-size:8.5pt}
+.pm-table tbody tr:nth-child(odd){background:#f8faff}
+.pm-table tbody tr:nth-child(even){background:#fff}
+.pm-table tbody td{padding:6px 10px;border:1px solid #e5e7eb}
+.pm-table tbody td:first-child{font-weight:600;color:#0F1835;width:45%}
+.pm-table.price-table tbody tr:last-child{background:#e8f0fe;font-weight:700}
+.pm-clause{margin-bottom:14px}
+.pm-clause-title{font-family:'Poppins',sans-serif;font-size:10pt;font-weight:700;color:#0F1835;margin-bottom:5px}
+.pm-clause p{font-size:9.5pt;color:#333;line-height:1.6}
+.pm-bank{background:#f8faff;border-left:3px solid #C5920D;padding:10px 14px;margin:8px 0 14px;font-size:9.5pt}
+.pm-bank div{margin-bottom:3px}
+.pm-bank b{color:#0F1835;display:inline-block;width:110px}
+.pm-sigs{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:20px}
+.pm-sig-box{border:1px solid #ddd;border-radius:4px;padding:14px}
+.pm-sig-box h4{font-family:'Poppins',sans-serif;font-size:9pt;font-weight:700;color:#0F1835;margin-bottom:10px;border-bottom:1px solid #eee;padding-bottom:8px}
+.pm-sig-img{max-width:160px;max-height:60px;margin:6px 0}
+.pm-sig-name{font-family:'Poppins',sans-serif;font-weight:700;font-size:9.5pt;color:#0F1835;margin-top:6px}
+.pm-sig-sub{font-size:8.5pt;color:#666;margin-top:2px}
+.pm-sig-line{border-bottom:1px solid #ccc;margin:14px 0 6px;height:32px}
+.pm-footer{background:#f4f6fb;border-top:1px solid #e2e8f0;padding:10px 36px;text-align:center;font-family:'Poppins',sans-serif;font-size:7.5pt;color:#999}
+.pm-close-bar{display:flex;justify-content:flex-end;gap:10px;padding:14px 36px;background:#f4f6fb;border-top:1px solid #e2e8f0}
+.pm-close-bar button{padding:10px 22px;border-radius:8px;font-family:'Poppins',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none}
+.pm-btn-close{background:#e2e8f0;color:#1a1a2e}
+.pm-btn-pdf{background:#0F1835;color:#fff}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="screen-login" class="screen active">
+  <div class="login-card">
+    <div class="login-logo">TISAJETS</div>
+    <div class="login-sub">AGREEMENT GENERATOR</div>
+    <input type="password" id="pw-input" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <button onclick="doLogin()">Access</button>
+    <div class="login-error" id="login-error">Incorrect password. Try again.</div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="screen-dashboard" class="screen">
+  <div class="topbar">
+    <div style="display:flex;align-items:baseline;gap:6px">
+      <span class="topbar-brand">TISAJETS</span>
+      <span class="topbar-sub">Agreement Generator</span>
+    </div>
+    <div class="topbar-nav">
+      <button onclick="showDash()">Agreements</button>
+      <button onclick="showSettings()">Settings</button>
+      <button onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+  <div class="dash-body">
+    <div class="dash-header">
+      <div class="dash-title">All Agreements</div>
+      <button class="btn-primary" onclick="newAgreement()">+ New Agreement</button>
+    </div>
+    <div class="stats-row" id="stats-row"></div>
+    <div class="dash-controls">
+      <input class="dash-search" id="search-input" placeholder="Search by reference, client, route..." oninput="renderTable()"/>
+      <select id="filter-status" onchange="renderTable()">
+        <option value="">All Statuses</option>
+        <option value="Draft">Draft</option>
+        <option value="Sent">Sent</option>
+        <option value="Signed">Signed</option>
+        <option value="Cancelled">Cancelled</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Reference</th><th>Date</th><th>Client</th><th>Route</th>
+            <th>Flight Date</th><th>Price</th><th>Status</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="agr-tbody"></tbody>
+      </table>
+      <div id="empty-state" class="empty-state" style="display:none">
+        <div style="font-size:40px">📄</div>
+        <p>No agreements yet. Click <strong>+ New Agreement</strong> to get started.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FORM -->
+<div id="screen-form" class="screen">
+  <div class="topbar">
+    <div style="display:flex;align-items:baseline;gap:6px">
+      <span class="topbar-brand">TISAJETS</span>
+      <span class="topbar-sub">Agreement Generator</span>
+    </div>
+    <div class="topbar-nav">
+      <button onclick="showDash()">Back to Dashboard</button>
+    </div>
+  </div>
+  <div class="form-body">
+    <div class="form-title" id="form-title">New Agreement</div>
+
+    <div class="form-card">
+      <h3>Agreement Details</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Reference</label>
+          <input type="text" id="f-ref" readonly style="background:#f8faff;color:#888"/>
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="f-date"/>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="f-status">
+            <option>Draft</option><option>Sent</option>
+            <option>Signed</option><option>Cancelled</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <h3>Client Information</h3>
+      <div class="form-row">
+        <div class="form-group" style="grid-column:1/-1">
+          <label>Client Full Name / Company Name</label>
+          <input type="text" id="f-client-name" placeholder="e.g. John Smith or Acme Holdings Ltd"/>
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label>Client Address</label>
+          <input type="text" id="f-client-address" placeholder="Street, City, Country"/>
+        </div>
+        <div class="form-group">
+          <label>Client VAT / Registration (optional)</label>
+          <input type="text" id="f-client-vat" placeholder="e.g. BE 0123.456.789"/>
+        </div>
+        <div class="form-group">
+          <label>Client Email (internal only)</label>
+          <input type="email" id="f-client-email" placeholder="client@example.com"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <h3>Flight Details</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Booking Reference</label>
+          <input type="text" id="f-booking-ref" placeholder="e.g. TJ-001"/>
+        </div>
+        <div class="form-group">
+          <label>Departure Airport</label>
+          <input type="text" id="f-dep-airport" placeholder="e.g. Antwerp (EBAW)"/>
+        </div>
+        <div class="form-group">
+          <label>Arrival Airport</label>
+          <input type="text" id="f-arr-airport" placeholder="e.g. Nice Cote d'Azur (LFMN)"/>
+        </div>
+        <div class="form-group">
+          <label>Date of Departure</label>
+          <input type="date" id="f-flight-date"/>
+        </div>
+        <div class="form-group">
+          <label>Estimated Departure Time</label>
+          <input type="time" id="f-dep-time"/>
+        </div>
+        <div class="form-group">
+          <label>Aircraft Type</label>
+          <input type="text" id="f-aircraft" placeholder="e.g. Cessna Citation XLS"/>
+        </div>
+        <div class="form-group">
+          <label>Maximum Passengers</label>
+          <input type="number" id="f-max-pax" min="1" max="50" placeholder="8"/>
+        </div>
+        <div class="form-group">
+          <label>Number of Passengers</label>
+          <input type="number" id="f-num-pax" min="1" max="50" placeholder="4"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <h3>Pricing</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Total Charter Price (EUR)</label>
+          <input type="number" id="f-price" min="0" step="0.01" placeholder="12500.00" oninput="calcTotal()"/>
+        </div>
+        <div class="form-group">
+          <label>VAT Rate</label>
+          <select id="f-vat" onchange="calcTotal()">
+            <option value="0">0% (Standard charter)</option>
+            <option value="21">21%</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Total Amount Due (EUR)</label>
+          <input type="text" id="f-total" readonly style="background:#f8faff;font-weight:600"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <h3>Internal Notes (not shown on PDF)</h3>
+      <div class="form-group">
+        <textarea id="f-notes" placeholder="Internal notes..."></textarea>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-secondary" onclick="showDash()">Cancel</button>
+      <button class="btn-primary" onclick="saveAgreement(false)">Save Draft</button>
+      <button class="btn-secondary" style="background:#ede9fe;border-color:#ede9fe;color:#4c1d95" onclick="saveAndPreview()">Save &amp; Preview</button>
+      <button class="btn-gold" onclick="saveAndPDF()">Save &amp; Generate PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div id="screen-settings" class="screen">
+  <div class="topbar">
+    <div style="display:flex;align-items:baseline;gap:6px">
+      <span class="topbar-brand">TISAJETS</span>
+      <span class="topbar-sub">Agreement Generator</span>
+    </div>
+    <div class="topbar-nav">
+      <button onclick="showDash()">Back</button>
+      <button onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+  <div class="settings-body">
+    <div class="settings-card">
+      <h3>Google Sheets Sync</h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Paste your Apps Script Web App URL below to sync agreements across devices.</p>
+      <div class="form-group">
+        <label>Apps Script Web App URL</label>
+        <input type="url" id="sheets-url" placeholder="https://script.google.com/macros/s/.../exec" style="padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Poppins',sans-serif;font-size:14px;outline:none;width:100%;margin-top:6px"/>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+        <button class="btn-primary" onclick="saveSettings()">Save URL</button>
+        <button class="btn-secondary" onclick="syncNow()">Push to Sheets</button>
+        <button class="btn-secondary" onclick="pullFromSheets()">Pull from Sheets</button>
+      </div>
+      <div class="sync-status" id="sync-status"></div>
+    </div>
+    <div class="settings-card">
+      <h3>Danger Zone</h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Delete all locally stored agreements. Cannot be undone.</p>
+      <button style="background:#fee2e2;color:#991b1b;border:none;padding:10px 20px;border-radius:8px;font-family:'Poppins',sans-serif;font-weight:600;cursor:pointer" onclick="clearAll()">Clear All Local Data</button>
+    </div>
+  </div>
+</div>
+
+<!-- PREVIEW MODAL -->
+<div id="preview-overlay">
+  <div id="preview-modal">
+    <div class="pm-header">
+      <div class="pm-brand">TISAJETS</div>
+      <div class="pm-contact">TisaJets BV &nbsp;|&nbsp; Appelmansstraat 1, 2018 Antwerp, Belgium &nbsp;|&nbsp; VAT: BE 1035.952.080 &nbsp;|&nbsp; info@tisajets.com &nbsp;|&nbsp; +32 485 313 301</div>
+    </div>
+    <div class="pm-body" id="pm-body"></div>
+    <div class="pm-footer">TisaJets BV &nbsp;—&nbsp; Appelmansstraat 1, 2018 Antwerp, Belgium &nbsp;—&nbsp; info@tisajets.com</div>
+    <div class="pm-close-bar">
+      <button class="pm-btn-close" onclick="closePreview()">Close</button>
+      <button class="pm-btn-pdf" id="pm-pdf-btn">Download PDF</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const PASSWORD='3l2D2005'
+const STORE_KEY='tj_agreements_v2'
+const SETTINGS_KEY='tj_agr_settings'
+const SIG_B64='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'
+
+// ── AUTH ──────────────────────────────────────────────────────────────
+function doLogin(){
+  if(document.getElementById('pw-input').value===PASSWORD){
+    sessionStorage.setItem('tj_agr_auth','1')
+    document.getElementById('login-error').style.display='none'
+    show('screen-dashboard')
+    renderStats();renderTable()
+  }else{
+    document.getElementById('login-error').style.display='block'
+    document.getElementById('pw-input').value=''
+  }
+}
+function doLogout(){sessionStorage.removeItem('tj_agr_auth');show('screen-login')}
+window.onload=()=>{
+  if(sessionStorage.getItem('tj_agr_auth')==='1'){show('screen-dashboard');loadSettings();renderStats();renderTable()}
+}
+
+// ── NAV ────────────────────────────────────────────────────────────────
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('active');s.style.display='none'})
+  const s=document.getElementById(id)
+  s.style.display='flex'
+  s.classList.add('active')
+}
+function showDash(){show('screen-dashboard');renderStats();renderTable()}
+function showSettings(){show('screen-settings');loadSettings()}
+
+// ── DATA ───────────────────────────────────────────────────────────────
+function getData(){return JSON.parse(localStorage.getItem(STORE_KEY)||'[]')}
+function setData(d){localStorage.setItem(STORE_KEY,JSON.stringify(d))}
+function nextRef(){
+  const d=getData()
+  if(!d.length)return'TJ-AGR-001'
+  const nums=d.map(a=>{const m=(a.ref||'').match(/(\d+)$/);return m?parseInt(m[1]):0})
+  return'TJ-AGR-'+String(Math.max(...nums)+1).padStart(3,'0')
+}
+
+// ── STATS ──────────────────────────────────────────────────────────────
+function renderStats(){
+  const d=getData()
+  document.getElementById('stats-row').innerHTML=`
+    <div class="stat-card"><div class="stat-val">${d.length}</div><div class="stat-lbl">Total</div></div>
+    <div class="stat-card"><div class="stat-val">${d.filter(a=>a.status==='Draft').length}</div><div class="stat-lbl">Drafts</div></div>
+    <div class="stat-card"><div class="stat-val">${d.filter(a=>a.status==='Sent').length}</div><div class="stat-lbl">Sent</div></div>
+    <div class="stat-card"><div class="stat-val">${d.filter(a=>a.status==='Signed').length}</div><div class="stat-lbl">Signed</div></div>
+  `
+}
+
+// ── TABLE ──────────────────────────────────────────────────────────────
+function badgeCls(s){return{Draft:'badge-draft',Sent:'badge-sent',Signed:'badge-signed',Cancelled:'badge-cancelled'}[s]||'badge-draft'}
+function fmtD(d){if(!d)return'—';const p=d.split('-');return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:d}
+function fmtP(n){return n?'EUR '+Number(n).toLocaleString('nl-BE',{minimumFractionDigits:2}):'—'}
+
+function renderTable(){
+  const q=(document.getElementById('search-input').value||'').toLowerCase()
+  const fs=document.getElementById('filter-status').value
+  let d=getData()
+  if(q)d=d.filter(a=>[(a.ref||''),(a.client_name||''),(a.dep_airport||''),(a.arr_airport||'')].join(' ').toLowerCase().includes(q))
+  if(fs)d=d.filter(a=>a.status===fs)
+  d.sort((a,b)=>b.created-a.created)
+  const tb=document.getElementById('agr-tbody')
+  const em=document.getElementById('empty-state')
+  if(!d.length){tb.innerHTML='';em.style.display='block';return}
+  em.style.display='none'
+  tb.innerHTML=d.map(a=>`<tr>
+    <td><strong>${a.ref||'—'}</strong></td>
+    <td>${fmtD(a.date)}</td>
+    <td>${a.client_name||'—'}</td>
+    <td>${a.dep_airport&&a.arr_airport?a.dep_airport+' to '+a.arr_airport:'—'}</td>
+    <td>${fmtD(a.flight_date)}</td>
+    <td>${fmtP(a.total_price)}</td>
+    <td><span class="badge ${badgeCls(a.status)}">${a.status||'Draft'}</span></td>
+    <td><div class="row-actions">
+      <button class="btn-sm btn-edit" onclick="editAgreement('${a.id}')">Edit</button>
+      <button class="btn-sm btn-preview" onclick="previewById('${a.id}')">Preview</button>
+      <button class="btn-sm btn-pdf" onclick="genPDFById('${a.id}')">PDF</button>
+      <button class="btn-sm btn-dup" onclick="dupAgreement('${a.id}')">Dup</button>
+      <button class="btn-sm btn-del" onclick="delAgreement('${a.id}')">Del</button>
+    </div></td>
+  </tr>`).join('')
+}
+
+// ── FORM ───────────────────────────────────────────────────────────────
+let editingId=null
+const FIELDS=['ref','date','status','client-name','client-address','client-vat','client-email',
+               'booking-ref','dep-airport','arr-airport','flight-date','dep-time','aircraft',
+               'max-pax','num-pax','price','vat','total','notes']
+
+function newAgreement(){
+  editingId=null
+  document.getElementById('form-title').textContent='New Agreement'
+  document.getElementById('f-ref').value=nextRef()
+  document.getElementById('f-date').value=new Date().toISOString().split('T')[0]
+  document.getElementById('f-status').value='Draft'
+  document.getElementById('f-vat').value='0'
+  ;['client-name','client-address','client-vat','client-email','booking-ref','dep-airport',
+    'arr-airport','flight-date','dep-time','aircraft','notes'].forEach(k=>{document.getElementById('f-'+k).value=''})
+  ;['max-pax','num-pax','price'].forEach(k=>{document.getElementById('f-'+k).value=''})
+  document.getElementById('f-total').value=''
+  show('screen-form')
+}
+
+function editAgreement(id){
+  const a=getData().find(x=>x.id===id)
+  if(!a)return
+  editingId=id
+  document.getElementById('form-title').textContent='Edit Agreement'
+  const fv=(k,v)=>{const el=document.getElementById('f-'+k);if(el)el.value=v||''}
+  fv('ref',a.ref);fv('date',a.date);fv('status',a.status||'Draft')
+  fv('client-name',a.client_name);fv('client-address',a.client_address)
+  fv('client-vat',a.client_vat);fv('client-email',a.client_email)
+  fv('booking-ref',a.booking_ref);fv('dep-airport',a.dep_airport)
+  fv('arr-airport',a.arr_airport);fv('flight-date',a.flight_date)
+  fv('dep-time',a.dep_time);fv('aircraft',a.aircraft)
+  fv('max-pax',a.max_pax);fv('num-pax',a.num_pax)
+  fv('price',a.charter_price);fv('vat',a.vat_rate||'0')
+  fv('notes',a.notes)
+  calcTotal()
+  show('screen-form')
+}
+
+function calcTotal(){
+  const p=parseFloat(document.getElementById('f-price').value)||0
+  const v=parseFloat(document.getElementById('f-vat').value)||0
+  const t=p*(1+v/100)
+  document.getElementById('f-total').value=t?'EUR '+t.toLocaleString('nl-BE',{minimumFractionDigits:2}):''
+}
+
+function getFormData(){
+  const gv=k=>document.getElementById('f-'+k).value
+  const p=parseFloat(gv('price'))||0
+  const v=parseFloat(gv('vat'))||0
+  return{
+    ref:gv('ref'),date:gv('date'),status:gv('status'),
+    client_name:gv('client-name'),client_address:gv('client-address'),
+    client_vat:gv('client-vat'),client_email:gv('client-email'),
+    booking_ref:gv('booking-ref'),dep_airport:gv('dep-airport'),
+    arr_airport:gv('arr-airport'),flight_date:gv('flight-date'),
+    dep_time:gv('dep-time'),aircraft:gv('aircraft'),
+    max_pax:gv('max-pax'),num_pax:gv('num-pax'),
+    charter_price:p,vat_rate:v,total_price:p*(1+v/100),
+    notes:gv('notes')
+  }
+}
+
+function saveAgreement(silent=false){
+  const fd=getFormData()
+  if(!fd.client_name){toast('Please enter a client name.');return false}
+  const d=getData()
+  if(editingId){
+    const i=d.findIndex(x=>x.id===editingId)
+    if(i>-1)d[i]={...d[i],...fd,updated:Date.now()}
+  }else{
+    const rec={id:'agr_'+Date.now(),...fd,created:Date.now(),updated:Date.now()}
+    editingId=rec.id
+    d.unshift(rec)
+  }
+  setData(d)
+  syncRecord(d.find(x=>x.id===editingId))
+  if(!silent)toast('Agreement saved.')
+  return true
+}
+
+function saveAndPDF(){if(saveAgreement(true)){const a=getData().find(x=>x.id===editingId);if(a)generatePDF(a)}}
+function saveAndPreview(){if(saveAgreement(true)){const a=getData().find(x=>x.id===editingId);if(a)showPreview(a)}}
+
+function dupAgreement(id){
+  const a=getData().find(x=>x.id===id)
+  if(!a)return
+  const d=getData()
+  const rec={...a,id:'agr_'+Date.now(),ref:nextRef(),status:'Draft',created:Date.now(),updated:Date.now()}
+  d.unshift(rec)
+  setData(d)
+  syncRecord(rec)
+  renderStats();renderTable()
+  toast('Duplicated.')
+}
+
+function delAgreement(id){
+  if(!confirm('Delete this agreement?'))return
+  setData(getData().filter(x=>x.id!==id))
+  deleteRecord(id)
+  renderStats();renderTable()
+  toast('Deleted.')
+}
+
+function genPDFById(id){const a=getData().find(x=>x.id===id);if(a)generatePDF(a)}
+function previewById(id){const a=getData().find(x=>x.id===id);if(a)showPreview(a)}
+function closePreview(){document.getElementById('preview-overlay').classList.remove('open')}
+
+function showPreview(agr){
+  function fmtD(d){if(!d)return'—';const p=d.split('-');return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:d}
+  function fmtE(n){return'EUR '+Number(n||0).toLocaleString('nl-BE',{minimumFractionDigits:2})}
+  const vatAmt=(agr.charter_price||0)*(agr.vat_rate||0)/100
+
+  const flightRows=[
+    ['Booking Reference',agr.booking_ref||'—'],
+    ['Departure Airport',agr.dep_airport||'—'],
+    ['Arrival Airport',agr.arr_airport||'—'],
+    ['Date of Departure',fmtD(agr.flight_date)],
+    ['Estimated Departure Time',agr.dep_time||'—'],
+    ['Aircraft Type',agr.aircraft||'—'],
+    ['Maximum Passengers',agr.max_pax||'—'],
+    ['Number of Passengers',agr.num_pax||'—'],
+  ]
+  const priceRows=[
+    ['Total Charter Price',fmtE(agr.charter_price)],
+    ['VAT ('+(agr.vat_rate||0)+'%)',fmtE(vatAmt)],
+    ['Total Amount Due',fmtE(agr.total_price)],
+  ]
+
+  const tableRows=rows=>rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')
+
+  const clientVatLine=agr.client_vat?`<div class="party-detail">VAT / Reg: ${agr.client_vat}</div>`:'';
+
+  document.getElementById('pm-body').innerHTML=`
+    <div class="pm-title">Air Charter Broker Agreement</div>
+    <div class="pm-gold-line"></div>
+    <div class="pm-meta">
+      <span><b>Reference:</b> ${agr.ref||'TJ-AGR-001'}</span>
+      <span><b>Date:</b> ${fmtD(agr.date)}</span>
+    </div>
+
+    <div class="pm-section-title">Parties</div>
+    <div class="pm-divider"></div>
+    <div class="pm-parties">
+      <p>This Air Charter Broker Agreement (the "Agreement") is entered into between:</p>
+      <p style="margin-top:10px">
+        <span class="party-name">TisaJets BV</span>
+        <span class="party-label"> (hereinafter referred to as "the Broker")</span>
+      </p>
+      <div class="party-detail">Appelmansstraat 1, 2018 Antwerp, Belgium</div>
+      <div class="party-detail">VAT: BE 1035.952.080</div>
+      <p style="margin:10px 0 8px"><b>AND</b></p>
+      <p>
+        <span class="party-name">${agr.client_name||'[Client Name]'}</span>
+        <span class="party-label"> (hereinafter referred to as "the Client")</span>
+      </p>
+      ${agr.client_address?`<div class="party-detail">${agr.client_address}</div>`:''}
+      ${clientVatLine}
+    </div>
+    <div class="pm-gold-divider"></div>
+
+    <div class="pm-clause">
+      <div class="pm-clause-title">Clause 1: Appointment of Broker</div>
+      <p>The Client hereby appoints TisaJets BV as its exclusive air charter broker to arrange the private charter flight described in Clause 2 of this Agreement. TisaJets BV accepts this appointment and agrees to act in the best interests of the Client in sourcing and arranging such charter services on the Client's behalf.</p>
+    </div>
+
+    <div class="pm-clause">
+      <div class="pm-clause-title">Clause 2: Flight Details</div>
+      <table class="pm-table">
+        <thead><tr><th>Field</th><th>Details</th></tr></thead>
+        <tbody>${tableRows(flightRows)}</tbody>
+      </table>
+    </div>
+
+    <div class="pm-clause">
+      <div class="pm-clause-title">Clause 3: Pricing &amp; Payment</div>
+      <table class="pm-table price-table" style="margin-bottom:10px">
+        <thead><tr><th>Description</th><th>Amount</th></tr></thead>
+        <tbody>${tableRows(priceRows)}</tbody>
+      </table>
+      <p style="font-size:9.5pt;color:#333;margin-bottom:6px">Full payment is due prior to the date of the flight. Payment shall be made by bank transfer to TisaJets BV:</p>
+      <div class="pm-bank">
+        <div><b>Account Name</b> TisaJets BV</div>
+        <div><b>IBAN</b> BE39 7390 3272 9619</div>
+        <div><b>BIC / SWIFT</b> KREDBEBB</div>
+        <div><b>Bank</b> KBC Bank</div>
+      </div>
+    </div>
+
+    <div class="pm-clause">
+      <div class="pm-clause-title">Clause 4: Role of TisaJets BV</div>
+      <p>TisaJets BV acts solely in the capacity of an air charter broker. TisaJets BV arranges the charter flight on behalf of the Client and does not itself provide air transportation services. The actual carriage of passengers will be performed by a duly licensed air carrier selected by TisaJets BV. TisaJets BV shall exercise due diligence in the selection of air carriers but shall not be liable for any act, omission, or negligence of the air carrier.</p>
+    </div>
+
+    <div class="pm-clause">
+      <div class="pm-clause-title">Clause 5: Confirmation of Agreement</div>
+      <p>This Agreement shall be deemed confirmed upon receipt of the signed Agreement by both parties. Electronic signatures executed via Documenso or any equivalent e-signature platform are expressly accepted as valid, binding, and legally enforceable, in accordance with applicable Belgian and EU electronic signature regulations.</p>
+    </div>
+
+    <div class="pm-clause">
+      <div class="pm-clause-title">Clause 6: Cancellation &amp; Refunds</div>
+      <p>All cancellations must be submitted in writing to TisaJets BV. The following cancellation fees apply as a percentage of the total charter price: (a) More than 30 days before departure: 25%. (b) 15 to 30 days before departure: 50%. (c) 7 to 14 days before departure: 75%. (d) Less than 7 days before departure: 100% (no refund). If TisaJets BV cancels the flight due to circumstances beyond its reasonable control, a full refund of amounts paid will be issued.</p>
+    </div>
+
+    <div class="pm-clause">
+      <div class="pm-clause-title">Clause 7: Empty Leg Notice</div>
+      <p>Where the charter flight constitutes an empty leg or repositioning flight, the Client acknowledges that such flights may be subject to schedule or route changes at short notice due to the primary charter requirements of the aircraft. TisaJets BV will use reasonable endeavours to provide maximum advance notice of any such changes.</p>
+    </div>
+
+    <div class="pm-clause">
+      <div class="pm-clause-title">Clause 8: Passenger Information &amp; Documentation</div>
+      <p>The Client is fully responsible for ensuring that all passengers hold valid travel documentation required for the flight, including passports, visas, and any other regulatory documentation. TisaJets BV shall not be held liable for any costs, losses, or inconvenience arising from a passenger's failure to hold valid or appropriate documentation.</p>
+    </div>
+
+    <div class="pm-clause">
+      <div class="pm-clause-title">Clause 9: Passenger Manifest</div>
+      <p>A complete and accurate passenger manifest, including the full legal name and date of birth of each passenger as stated on their travel document, must be provided to TisaJets BV no later than 48 hours prior to the scheduled departure time. Failure to provide accurate and timely passenger information may result in delays or cancellation of the flight, for which TisaJets BV accepts no liability.</p>
+    </div>
+
+    <div class="pm-clause">
+      <div class="pm-clause-title">Clause 10: Terms &amp; Conditions</div>
+      <p>This Agreement is subject to the general terms and conditions of TisaJets BV, which are available upon request. In the event of any conflict between this Agreement and the general terms and conditions, the specific provisions of this Agreement shall prevail.</p>
+    </div>
+
+    <div class="pm-clause">
+      <div class="pm-clause-title">Clause 11: Governing Law &amp; Jurisdiction</div>
+      <p>This Agreement shall be governed by and construed in accordance with the laws of Belgium. Any dispute arising out of or in connection with this Agreement shall be subject to the exclusive jurisdiction of the courts of Antwerp, Belgium.</p>
+    </div>
+
+    <div class="pm-clause">
+      <div class="pm-clause-title">Clause 12: Acceptance</div>
+      <p>By signing below, each party confirms that they have read, fully understood, and expressly agreed to all terms and conditions set out in this Agreement, which shall constitute a legally binding contract between the parties.</p>
+    </div>
+
+    <div class="pm-gold-divider"></div>
+    <div class="pm-section-title" style="margin-top:0">Signatures</div>
+    <div class="pm-sigs">
+      <div class="pm-sig-box">
+        <h4>Signing on behalf of TisaJets BV</h4>
+        <img class="pm-sig-img" src="data:image/png;base64,${SIG_B64}" alt="Signature"/>
+        <div class="pm-sig-name">Elad Yanukashvili</div>
+        <div class="pm-sig-sub">Founder, TisaJets BV</div>
+        <div class="pm-sig-sub" style="margin-top:4px">Date: ${fmtD(agr.date)}</div>
+      </div>
+      <div class="pm-sig-box">
+        <h4>Client Signature</h4>
+        <div class="pm-sig-line"></div>
+        <div style="font-size:8.5pt;color:#999;margin-bottom:10px">Signature</div>
+        <div class="pm-sig-line" style="height:20px"></div>
+        <div style="font-size:8.5pt;color:#999;margin-bottom:10px">Full Name</div>
+        <div class="pm-sig-line" style="height:20px"></div>
+        <div style="font-size:8.5pt;color:#999">Date</div>
+      </div>
+    </div>
+  `
+
+  document.getElementById('pm-pdf-btn').onclick=()=>{closePreview();printAgreement(agr)}
+  document.getElementById('preview-overlay').classList.add('open')
+  document.getElementById('preview-overlay').scrollTop=0
+}
+
+// Close on backdrop click
+document.getElementById('preview-overlay').addEventListener('click',function(e){
+  if(e.target===this)closePreview()
+})
+
+function printAgreement(agr){
+  function fmtD(d){if(!d)return'—';const p=d.split('-');return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:d}
+  function fmtE(n){return'EUR '+Number(n||0).toLocaleString('nl-BE',{minimumFractionDigits:2})}
+  const vatAmt=(agr.charter_price||0)*(agr.vat_rate||0)/100
+  const flightRows=[
+    ['Booking Reference',agr.booking_ref||'—'],
+    ['Departure Airport',agr.dep_airport||'—'],
+    ['Arrival Airport',agr.arr_airport||'—'],
+    ['Date of Departure',fmtD(agr.flight_date)],
+    ['Estimated Departure Time',agr.dep_time||'—'],
+    ['Aircraft Type',agr.aircraft||'—'],
+    ['Maximum Passengers',agr.max_pax||'—'],
+    ['Number of Passengers',agr.num_pax||'—'],
+  ]
+  const priceRows=[
+    ['Total Charter Price',fmtE(agr.charter_price)],
+    ['VAT ('+(agr.vat_rate||0)+'%)',fmtE(vatAmt)],
+    ['Total Amount Due',fmtE(agr.total_price)],
+  ]
+  const tr=rows=>rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')
+
+  const html=`<!DOCTYPE html><html><head>
+<meta charset="UTF-8"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet"/>
+<title>${agr.ref||'TJ-AGR'} — Air Charter Broker Agreement</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+@page{size:A4;margin:0}
+body{font-family:'Times New Roman',serif;font-size:10.5pt;color:#111;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.page{width:210mm;min-height:297mm;display:flex;flex-direction:column}
+.hdr{background:#0F1835;padding:16px 28px 14px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.hdr-brand{font-family:'Poppins',sans-serif;font-size:20pt;font-weight:700;color:#C5920D;letter-spacing:2px}
+.hdr-contact{font-family:'Poppins',sans-serif;font-size:7.5pt;color:rgba(255,255,255,.85);margin-top:4px}
+.body{padding:24px 32px;flex:1}
+.doc-title{font-family:'Poppins',sans-serif;font-size:15pt;font-weight:700;color:#0F1835;text-align:center;margin-bottom:3px}
+.gold-line{height:2px;background:#C5920D;margin-bottom:14px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.meta{display:flex;justify-content:space-between;font-size:8.5pt;margin-bottom:16px}
+.meta b{color:#0F1835}
+.sec-title{font-family:'Poppins',sans-serif;font-size:9.5pt;font-weight:700;color:#0F1835;margin:14px 0 6px}
+.divider{height:1px;background:#ddd;margin-bottom:10px}
+.gold-div{height:1px;background:#C5920D;margin:14px 0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.parties p{margin-bottom:5px;font-size:9.5pt}
+.pname{font-family:'Poppins',sans-serif;font-weight:700;color:#0F1835}
+.plabel{color:#555;font-size:9pt}
+.pdetail{color:#444;padding-left:10px;font-size:9pt}
+tbl{width:100%;border-collapse:collapse;margin-bottom:12px;font-size:9pt}
+table{width:100%;border-collapse:collapse;margin-bottom:12px;font-size:9pt}
+thead tr{background:#0F1835;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+thead th{padding:6px 9px;text-align:left;font-family:'Poppins',sans-serif;font-weight:600;font-size:8pt;color:#fff}
+tbody tr:nth-child(odd){background:#f7f9ff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+tbody td{padding:5px 9px;border:1px solid #e0e4ea;font-size:9pt}
+tbody td:first-child{font-family:'Poppins',sans-serif;font-weight:600;color:#0F1835;width:44%}
+.total-row{background:#deeaff!important;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.bank{background:#f7f9ff;border-left:3px solid #C5920D;padding:8px 12px;margin:6px 0 12px;font-size:9pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.bank div{margin-bottom:2px}
+.bank b{font-family:'Poppins',sans-serif;display:inline-block;width:100px;color:#0F1835}
+.cl{margin-bottom:11px}
+.cl-title{font-family:'Poppins',sans-serif;font-size:9.5pt;font-weight:700;color:#0F1835;margin-bottom:4px}
+.cl p{font-size:9pt;color:#333;line-height:1.55}
+.sigs{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:16px}
+.sig-box{border:1px solid #ccc;border-radius:3px;padding:12px}
+.sig-box h4{font-family:'Poppins',sans-serif;font-size:8.5pt;font-weight:700;color:#0F1835;margin-bottom:8px;border-bottom:1px solid #eee;padding-bottom:6px}
+.sig-img{max-width:150px;max-height:55px;margin:4px 0}
+.sig-name{font-family:'Poppins',sans-serif;font-weight:700;font-size:9pt;color:#0F1835;margin-top:4px}
+.sig-sub{font-size:8pt;color:#666;margin-top:2px}
+.sig-line{border-bottom:1px solid #bbb;margin:12px 0 4px;height:28px}
+.sig-lbl{font-size:7.5pt;color:#aaa;margin-bottom:8px}
+.ftr{background:#f4f6fb;border-top:1px solid #e2e8f0;padding:8px 32px;text-align:center;font-family:'Poppins',sans-serif;font-size:7pt;color:#999;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+</style>
+</head>
+<body>
+<div class="page">
+<div class="hdr">
+  <div class="hdr-brand">TISAJETS</div>
+  <div class="hdr-contact">TisaJets BV &nbsp;|&nbsp; Appelmansstraat 1, 2018 Antwerp, Belgium &nbsp;|&nbsp; VAT: BE 1035.952.080 &nbsp;|&nbsp; info@tisajets.com &nbsp;|&nbsp; +32 485 313 301</div>
+</div>
+<div class="body">
+  <div class="doc-title">Air Charter Broker Agreement</div>
+  <div class="gold-line"></div>
+  <div class="meta"><span><b>Reference:</b> ${agr.ref||'TJ-AGR-001'}</span><span><b>Date:</b> ${fmtD(agr.date)}</span></div>
+
+  <div class="sec-title">Parties</div>
+  <div class="divider"></div>
+  <div class="parties">
+    <p>This Air Charter Broker Agreement (the "Agreement") is entered into between:</p>
+    <p style="margin-top:8px"><span class="pname">TisaJets BV</span> <span class="plabel">(hereinafter referred to as "the Broker")</span></p>
+    <div class="pdetail">Appelmansstraat 1, 2018 Antwerp, Belgium</div>
+    <div class="pdetail">VAT: BE 1035.952.080</div>
+    <p style="margin:8px 0"><b>AND</b></p>
+    <p><span class="pname">${agr.client_name||'[Client Name]'}</span> <span class="plabel">(hereinafter referred to as "the Client")</span></p>
+    ${agr.client_address?`<div class="pdetail">${agr.client_address}</div>`:''}
+    ${agr.client_vat?`<div class="pdetail">VAT / Reg: ${agr.client_vat}</div>`:''}
+  </div>
+  <div class="gold-div"></div>
+
+  <div class="cl"><div class="cl-title">Clause 1: Appointment of Broker</div>
+  <p>The Client hereby appoints TisaJets BV as its exclusive air charter broker to arrange the private charter flight described in Clause 2 of this Agreement. TisaJets BV accepts this appointment and agrees to act in the best interests of the Client in sourcing and arranging such charter services on the Client's behalf.</p></div>
+
+  <div class="cl"><div class="cl-title">Clause 2: Flight Details</div>
+  <table><thead><tr><th>Field</th><th>Details</th></tr></thead><tbody>${tr(flightRows)}</tbody></table></div>
+
+  <div class="cl"><div class="cl-title">Clause 3: Pricing &amp; Payment</div>
+  <table><thead><tr><th>Description</th><th>Amount</th></tr></thead>
+  <tbody>
+    <tr><td>Total Charter Price</td><td>${fmtE(agr.charter_price)}</td></tr>
+    <tr><td>VAT (${agr.vat_rate||0}%)</td><td>${fmtE(vatAmt)}</td></tr>
+    <tr class="total-row"><td>Total Amount Due</td><td>${fmtE(agr.total_price)}</td></tr>
+  </tbody></table>
+  <p style="font-size:9pt;color:#333;margin-bottom:6px">Full payment is due prior to the date of the flight. Payment shall be made by bank transfer to TisaJets BV:</p>
+  <div class="bank">
+    <div><b>Account Name</b>TisaJets BV</div>
+    <div><b>IBAN</b>BE39 7390 3272 9619</div>
+    <div><b>BIC / SWIFT</b>KREDBEBB</div>
+    <div><b>Bank</b>KBC Bank</div>
+  </div></div>
+
+  <div class="cl"><div class="cl-title">Clause 4: Role of TisaJets BV</div>
+  <p>TisaJets BV acts solely in the capacity of an air charter broker. TisaJets BV arranges the charter flight on behalf of the Client and does not itself provide air transportation services. The actual carriage of passengers will be performed by a duly licensed air carrier selected by TisaJets BV. TisaJets BV shall exercise due diligence in the selection of air carriers but shall not be liable for any act, omission, or negligence of the air carrier.</p></div>
+
+  <div class="cl"><div class="cl-title">Clause 5: Confirmation of Agreement</div>
+  <p>This Agreement shall be deemed confirmed upon receipt of the signed Agreement by both parties. Electronic signatures executed via Documenso or any equivalent e-signature platform are expressly accepted as valid, binding, and legally enforceable, in accordance with applicable Belgian and EU electronic signature regulations.</p></div>
+
+  <div class="cl"><div class="cl-title">Clause 6: Cancellation &amp; Refunds</div>
+  <p>All cancellations must be submitted in writing to TisaJets BV. The following cancellation fees apply as a percentage of the total charter price: (a) More than 30 days before departure: 25%. (b) 15 to 30 days before departure: 50%. (c) 7 to 14 days before departure: 75%. (d) Less than 7 days before departure: 100% (no refund). If TisaJets BV cancels the flight due to circumstances beyond its reasonable control, a full refund of amounts paid will be issued.</p></div>
+
+  <div class="cl"><div class="cl-title">Clause 7: Empty Leg Notice</div>
+  <p>Where the charter flight constitutes an empty leg or repositioning flight, the Client acknowledges that such flights may be subject to schedule or route changes at short notice due to the primary charter requirements of the aircraft. TisaJets BV will use reasonable endeavours to provide maximum advance notice of any such changes.</p></div>
+
+  <div class="cl"><div class="cl-title">Clause 8: Passenger Information &amp; Documentation</div>
+  <p>The Client is fully responsible for ensuring that all passengers hold valid travel documentation required for the flight, including passports, visas, and any other regulatory documentation. TisaJets BV shall not be held liable for any costs, losses, or inconvenience arising from a passenger's failure to hold valid or appropriate documentation.</p></div>
+
+  <div class="cl"><div class="cl-title">Clause 9: Passenger Manifest</div>
+  <p>A complete and accurate passenger manifest, including the full legal name and date of birth of each passenger as stated on their travel document, must be provided to TisaJets BV no later than 48 hours prior to the scheduled departure time. Failure to provide accurate and timely passenger information may result in delays or cancellation of the flight, for which TisaJets BV accepts no liability.</p></div>
+
+  <div class="cl"><div class="cl-title">Clause 10: Terms &amp; Conditions</div>
+  <p>This Agreement is subject to the general terms and conditions of TisaJets BV, which are available upon request. In the event of any conflict between this Agreement and the general terms and conditions, the specific provisions of this Agreement shall prevail.</p></div>
+
+  <div class="cl"><div class="cl-title">Clause 11: Governing Law &amp; Jurisdiction</div>
+  <p>This Agreement shall be governed by and construed in accordance with the laws of Belgium. Any dispute arising out of or in connection with this Agreement shall be subject to the exclusive jurisdiction of the courts of Antwerp, Belgium.</p></div>
+
+  <div class="cl"><div class="cl-title">Clause 12: Acceptance</div>
+  <p>By signing below, each party confirms that they have read, fully understood, and expressly agreed to all terms and conditions set out in this Agreement, which shall constitute a legally binding contract between the parties.</p></div>
+
+  <div class="gold-div"></div>
+  <div class="sec-title" style="margin-top:0">Signatures</div>
+  <div class="sigs">
+    <div class="sig-box">
+      <h4>Signing on behalf of TisaJets BV</h4>
+      <img class="sig-img" src="data:image/png;base64,${SIG_B64}" alt="Signature"/>
+      <div class="sig-name">Elad Yanukashvili</div>
+      <div class="sig-sub">Founder, TisaJets BV</div>
+      <div class="sig-sub" style="margin-top:3px">Date: ${fmtD(agr.date)}</div>
+    </div>
+    <div class="sig-box">
+      <h4>Client Signature</h4>
+      <div class="sig-line"></div><div class="sig-lbl">Signature</div>
+      <div class="sig-line"></div><div class="sig-lbl">Full Name</div>
+      <div class="sig-line"></div><div class="sig-lbl">Date</div>
+    </div>
+  </div>
+</div>
+<div class="ftr">TisaJets BV &nbsp;—&nbsp; Appelmansstraat 1, 2018 Antwerp, Belgium &nbsp;—&nbsp; info@tisajets.com</div>
+</div>
+<script>window.onload=()=>{window.print()}<\/script>
+</body></html>`
+
+  const w=window.open('','_blank')
+  w.document.write(html)
+  w.document.close()
+}
+
+// ── PDF ────────────────────────────────────────────────────────────────
+function fmtDP(d){if(!d)return'—';const p=d.split('-');return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:d}
+function fmtEUR(n){return'EUR '+Number(n||0).toLocaleString('nl-BE',{minimumFractionDigits:2})}
+
+function generatePDF(agr){
+  const{jsPDF}=window.jspdf
+  const doc=new jsPDF({unit:'mm',format:'a4'})
+  const ML=18,MR=192,PW=174
+  let y=0
+
+  function footer(){
+    doc.setFontSize(7.5)
+    doc.setFont('helvetica','normal')
+    doc.setTextColor(130,130,130)
+    doc.text('TisaJets BV  |  Appelmansstraat 1, 2018 Antwerp, Belgium  |  info@tisajets.com  |  +32 485 313 301',105,290,{align:'center'})
+    doc.setDrawColor(197,146,13)
+    doc.setLineWidth(0.3)
+    doc.line(ML,286,MR,286)
+  }
+
+  function newPage(){footer();doc.addPage();y=18}
+  function chk(n){if(y+n>272)newPage()}
+
+  function writeLine(txt,x,size,style,color){
+    doc.setFontSize(size||8.5)
+    doc.setFont('helvetica',style||'normal')
+    doc.setTextColor(...(color||[50,50,50]))
+    doc.text(txt,x||ML,y)
+  }
+
+  function writeBlock(txt,size,style,color,indent){
+    const lines=doc.splitTextToSize(txt,PW-(indent||0))
+    doc.setFontSize(size||8.5)
+    doc.setFont('helvetica',style||'normal')
+    doc.setTextColor(...(color||[50,50,50]))
+    lines.forEach(l=>{chk(5);doc.text(l,(indent?ML+indent:ML),y);y+=4.6})
+  }
+
+  function clauseHead(num,title){
+    chk(14)
+    doc.setFontSize(9.5)
+    doc.setFont('helvetica','bold')
+    doc.setTextColor(15,24,53)
+    doc.text('Clause '+num+': '+title,ML,y)
+    y+=5.5
+  }
+
+  function clauseBody(txt){
+    writeBlock(txt,8.5,'normal',[55,55,55],0)
+    y+=4
+  }
+
+  // HEADER BAND
+  doc.setFillColor(15,24,53)
+  doc.rect(0,0,210,38,'F')
+  doc.setFontSize(24)
+  doc.setFont('helvetica','bold')
+  doc.setTextColor(197,146,13)
+  doc.text('TISAJETS',ML,20)
+  doc.setFontSize(7.5)
+  doc.setFont('helvetica','normal')
+  doc.setTextColor(255,255,255)
+  doc.text('TisaJets BV  |  Appelmansstraat 1, 2018 Antwerp, Belgium',ML,27)
+  doc.text('VAT: BE 1035.952.080  |  info@tisajets.com  |  +32 485 313 301',ML,33)
+  y=50
+
+  // TITLE
+  doc.setFontSize(16)
+  doc.setFont('helvetica','bold')
+  doc.setTextColor(15,24,53)
+  doc.text('Air Charter Broker Agreement',105,y,{align:'center'})
+  y+=5
+  doc.setDrawColor(197,146,13)
+  doc.setLineWidth(0.9)
+  doc.line(ML,y,MR,y)
+  y+=8
+
+  // REF & DATE
+  doc.setFontSize(8.5)
+  doc.setFont('helvetica','bold')
+  doc.setTextColor(15,24,53)
+  doc.text('Agreement Reference:',ML,y)
+  doc.setFont('helvetica','normal')
+  doc.setTextColor(50,50,50)
+  doc.text(agr.ref||'TJ-AGR-001',ML+43,y)
+  doc.setFont('helvetica','bold')
+  doc.setTextColor(15,24,53)
+  doc.text('Date:',144,y)
+  doc.setFont('helvetica','normal')
+  doc.setTextColor(50,50,50)
+  doc.text(fmtDP(agr.date),153,y)
+  y+=11
+
+  // PARTIES HEADING
+  doc.setFontSize(10.5)
+  doc.setFont('helvetica','bold')
+  doc.setTextColor(15,24,53)
+  doc.text('Parties',ML,y)
+  y+=4
+  doc.setDrawColor(210,210,210)
+  doc.setLineWidth(0.3)
+  doc.line(ML,y,MR,y)
+  y+=6
+
+  doc.setFontSize(8.5)
+  doc.setFont('helvetica','normal')
+  doc.setTextColor(55,55,55)
+  doc.text('This Air Charter Broker Agreement (the "Agreement") is entered into between:',ML,y)
+  y+=8
+
+  doc.setFont('helvetica','bold')
+  doc.setTextColor(15,24,53)
+  doc.text('TisaJets BV',ML,y)
+  const w1=doc.getTextWidth('TisaJets BV')
+  doc.setFont('helvetica','normal')
+  doc.setTextColor(55,55,55)
+  doc.text('  (hereinafter referred to as "the Broker")',ML+w1,y)
+  y+=5
+  doc.text('Appelmansstraat 1, 2018 Antwerp, Belgium',ML+5,y);y+=4.5
+  doc.text('VAT: BE 1035.952.080',ML+5,y);y+=8
+
+  doc.setFont('helvetica','bold')
+  doc.setTextColor(15,24,53)
+  doc.text('AND',ML,y);y+=8
+
+  const cn=agr.client_name||'[Client Name]'
+  doc.setFont('helvetica','bold')
+  doc.setTextColor(15,24,53)
+  doc.text(cn,ML,y)
+  const w2=doc.getTextWidth(cn)
+  doc.setFont('helvetica','normal')
+  doc.setTextColor(55,55,55)
+  doc.text('  (hereinafter referred to as "the Client")',ML+w2,y)
+  y+=5
+  if(agr.client_address){doc.text(agr.client_address,ML+5,y);y+=4.5}
+  if(agr.client_vat){doc.text('VAT / Reg: '+agr.client_vat,ML+5,y);y+=4.5}
+  y+=4
+
+  doc.setDrawColor(197,146,13)
+  doc.setLineWidth(0.5)
+  doc.line(ML,y,MR,y)
+  y+=8
+
+  // CLAUSE 1
+  clauseHead(1,'Appointment of Broker')
+  clauseBody('The Client hereby appoints TisaJets BV as its exclusive air charter broker to arrange the private charter flight described in Clause 2 of this Agreement. TisaJets BV accepts this appointment and agrees to act in the best interests of the Client in sourcing and arranging such charter services on the Client\'s behalf.')
+
+  // CLAUSE 2 - FLIGHT DETAILS TABLE
+  chk(60)
+  clauseHead(2,'Flight Details')
+  const tRows=[
+    ['Booking Reference',agr.booking_ref||'—'],
+    ['Departure Airport',agr.dep_airport||'—'],
+    ['Arrival Airport',agr.arr_airport||'—'],
+    ['Date of Departure',fmtDP(agr.flight_date)],
+    ['Estimated Departure Time',agr.dep_time||'—'],
+    ['Aircraft Type',agr.aircraft||'—'],
+    ['Maximum Passengers',agr.max_pax?String(agr.max_pax):'—'],
+    ['Number of Passengers',agr.num_pax?String(agr.num_pax):'—'],
+  ]
+  const c1=ML,c2=ML+72,rH=7
+  doc.setFillColor(15,24,53)
+  doc.rect(c1,y,PW,rH,'F')
+  doc.setFontSize(8)
+  doc.setFont('helvetica','bold')
+  doc.setTextColor(255,255,255)
+  doc.text('Field',c1+3,y+4.8)
+  doc.text('Details',c2+3,y+4.8)
+  y+=rH
+  tRows.forEach((r,i)=>{
+    doc.setFillColor(i%2===0?248:255,i%2===0?250:255,i%2===0?255:255)
+    doc.rect(c1,y,PW,rH,'F')
+    doc.setDrawColor(225,225,225)
+    doc.setLineWidth(0.2)
+    doc.rect(c1,y,PW,rH)
+    doc.setFontSize(8)
+    doc.setFont('helvetica','bold')
+    doc.setTextColor(15,24,53)
+    doc.text(r[0],c1+3,y+4.8)
+    doc.setFont('helvetica','normal')
+    doc.setTextColor(55,55,55)
+    doc.text(r[1],c2+3,y+4.8)
+    y+=rH
+  })
+  y+=6
+
+  // CLAUSE 3 - PRICING
+  chk(50)
+  clauseHead(3,'Pricing & Payment')
+  const vatAmt=(agr.charter_price||0)*(agr.vat_rate||0)/100
+  const pRows=[
+    ['Total Charter Price',fmtEUR(agr.charter_price)],
+    ['VAT ('+(agr.vat_rate||0)+'%)',fmtEUR(vatAmt)],
+    ['Total Amount Due',fmtEUR(agr.total_price)],
+  ]
+  const pc1=ML,pc2=ML+80,prH=7
+  doc.setFillColor(15,24,53)
+  doc.rect(pc1,y,PW,prH,'F')
+  doc.setFontSize(8)
+  doc.setFont('helvetica','bold')
+  doc.setTextColor(255,255,255)
+  doc.text('Description',pc1+3,y+4.8)
+  doc.text('Amount',pc2+3,y+4.8)
+  y+=prH
+  pRows.forEach((r,i)=>{
+    const bold=i===2
+    doc.setFillColor(i===2?235:i%2===0?248:255,i===2?242:i%2===0?250:255,i===2?255:255)
+    doc.rect(pc1,y,PW,prH,'F')
+    doc.setDrawColor(225,225,225)
+    doc.setLineWidth(0.2)
+    doc.rect(pc1,y,PW,prH)
+    doc.setFontSize(8)
+    doc.setFont('helvetica',bold?'bold':'normal')
+    doc.setTextColor(15,24,53)
+    doc.text(r[0],pc1+3,y+4.8)
+    doc.setFont('helvetica','bold')
+    doc.setTextColor(bold?15:55,bold?24:55,bold?53:55)
+    doc.text(r[1],pc2+3,y+4.8)
+    y+=prH
+  })
+  y+=5
+  writeBlock('Full payment is due prior to the date of the flight. Payment shall be made by bank transfer to TisaJets BV:',8.5,'normal',[55,55,55])
+  y+=2
+  const bank=[['Account Name','TisaJets BV'],['IBAN','BE39 7390 3272 9619'],['BIC / SWIFT','KREDBEBB'],['Bank','KBC Bank']]
+  bank.forEach(r=>{
+    doc.setFont('helvetica','bold')
+    doc.setTextColor(15,24,53)
+    doc.text(r[0]+':',ML+5,y)
+    doc.setFont('helvetica','normal')
+    doc.setTextColor(55,55,55)
+    doc.text(r[1],ML+38,y)
+    y+=4.6
+  })
+  y+=4
+
+  // CLAUSE 4
+  clauseHead(4,'Role of TisaJets BV')
+  clauseBody('TisaJets BV acts solely in the capacity of an air charter broker. TisaJets BV arranges the charter flight on behalf of the Client and does not itself provide air transportation services. The actual carriage of passengers will be performed by a duly licensed air carrier selected by TisaJets BV. TisaJets BV shall exercise due diligence in the selection of air carriers but shall not be liable for any act, omission, or negligence of the air carrier.')
+
+  // CLAUSE 5
+  clauseHead(5,'Confirmation of Agreement')
+  clauseBody('This Agreement shall be deemed confirmed upon receipt of the signed Agreement by both parties. Electronic signatures executed via Documenso or any equivalent e-signature platform are expressly accepted as valid, binding, and legally enforceable, in accordance with applicable Belgian and EU electronic signature regulations.')
+
+  // CLAUSE 6
+  clauseHead(6,'Cancellation & Refunds')
+  clauseBody('All cancellations must be submitted in writing to TisaJets BV. The following cancellation fees apply as a percentage of the total charter price: (a) More than 30 days before departure: 25%. (b) 15 to 30 days before departure: 50%. (c) 7 to 14 days before departure: 75%. (d) Less than 7 days before departure: 100% (no refund). If TisaJets BV cancels the flight due to circumstances beyond its reasonable control, a full refund of amounts paid will be issued.')
+
+  // CLAUSE 7
+  clauseHead(7,'Empty Leg Notice')
+  clauseBody('Where the charter flight constitutes an empty leg or repositioning flight, the Client acknowledges that such flights may be subject to schedule or route changes at short notice due to the primary charter requirements of the aircraft. TisaJets BV will use reasonable endeavours to provide maximum advance notice of any such changes.')
+
+  // CLAUSE 8
+  clauseHead(8,'Passenger Information & Documentation')
+  clauseBody('The Client is fully responsible for ensuring that all passengers hold valid travel documentation required for the flight, including passports, visas, and any other regulatory documentation. TisaJets BV shall not be held liable for any costs, losses, or inconvenience arising from a passenger\'s failure to hold valid or appropriate documentation.')
+
+  // CLAUSE 9
+  clauseHead(9,'Passenger Manifest')
+  clauseBody('A complete and accurate passenger manifest, including the full legal name and date of birth of each passenger as stated on their travel document, must be provided to TisaJets BV no later than 48 hours prior to the scheduled departure time. Failure to provide accurate and timely passenger information may result in delays or cancellation of the flight, for which TisaJets BV accepts no liability.')
+
+  // CLAUSE 10
+  clauseHead(10,'Terms & Conditions')
+  clauseBody('This Agreement is subject to the general terms and conditions of TisaJets BV, which are available upon request. In the event of any conflict between this Agreement and the general terms and conditions, the specific provisions of this Agreement shall prevail.')
+
+  // CLAUSE 11
+  clauseHead(11,'Governing Law & Jurisdiction')
+  clauseBody('This Agreement shall be governed by and construed in accordance with the laws of Belgium. Any dispute arising out of or in connection with this Agreement shall be subject to the exclusive jurisdiction of the courts of Antwerp, Belgium.')
+
+  // CLAUSE 12
+  clauseHead(12,'Acceptance')
+  clauseBody('By signing below, each party confirms that they have read, fully understood, and expressly agreed to all terms and conditions set out in this Agreement, which shall constitute a legally binding contract between the parties.')
+
+  // SIGNATURES
+  chk(70)
+  y+=2
+  doc.setDrawColor(197,146,13)
+  doc.setLineWidth(0.5)
+  doc.line(ML,y,MR,y)
+  y+=7
+
+  doc.setFontSize(10.5)
+  doc.setFont('helvetica','bold')
+  doc.setTextColor(15,24,53)
+  doc.text('Signatures',ML,y)
+  y+=8
+
+  const bY=y,bW=82,bH=58
+  const lX=ML,rX=ML+90
+
+  // TisaJets box
+  doc.setDrawColor(200,200,200)
+  doc.setLineWidth(0.3)
+  doc.rect(lX,bY,bW,bH)
+  doc.setFontSize(8)
+  doc.setFont('helvetica','bold')
+  doc.setTextColor(15,24,53)
+  doc.text('Signing on behalf of TisaJets BV',lX+3,bY+6)
+
+  // Embed signature image
+  try{doc.addImage('data:image/png;base64,'+SIG_B64,'PNG',lX+3,bY+9,52,23)}catch(e){}
+
+  doc.setFontSize(8.5)
+  doc.setFont('helvetica','bold')
+  doc.setTextColor(15,24,53)
+  doc.text('Elad Yanukashvili',lX+3,bY+36)
+  doc.setFontSize(8)
+  doc.setFont('helvetica','normal')
+  doc.setTextColor(80,80,80)
+  doc.text('Founder, TisaJets BV',lX+3,bY+41)
+  doc.text('Date: '+fmtDP(agr.date),lX+3,bY+46)
+  doc.setDrawColor(15,24,53)
+  doc.setLineWidth(0.4)
+  doc.line(lX+3,bY+52,lX+bW-3,bY+52)
+
+  // Client box
+  doc.setDrawColor(200,200,200)
+  doc.setLineWidth(0.3)
+  doc.rect(rX,bY,bW,bH)
+  doc.setFontSize(8)
+  doc.setFont('helvetica','bold')
+  doc.setTextColor(15,24,53)
+  doc.text('Client Signature',rX+3,bY+6)
+  doc.setFont('helvetica','normal')
+  doc.setTextColor(140,140,140)
+  doc.text('Full Name: _______________________',rX+3,bY+22)
+  doc.text('Title: ____________________________',rX+3,bY+31)
+  doc.text('Date: ____________________________',rX+3,bY+40)
+  doc.text('Signature: ________________________',rX+3,bY+52)
+
+  footer()
+
+  const fn=(agr.ref||'TJ-AGR')+'_'+(agr.client_name||'client').replace(/[^a-zA-Z0-9]/g,'_')+'.pdf'
+  doc.save(fn)
+  toast('PDF downloaded.')
+}
+
+// ── GOOGLE SHEETS SYNC ────────────────────────────────────────────────
+function loadSettings(){
+  const s=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}')
+  if(s.url)document.getElementById('sheets-url').value=s.url
+}
+function saveSettings(){
+  const url=document.getElementById('sheets-url').value.trim()
+  localStorage.setItem(SETTINGS_KEY,JSON.stringify({url}))
+  toast('Settings saved.')
+}
+function getURL(){return(JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}')).url||''}
+async function syncRecord(rec){
+  const url=getURL();if(!url)return
+  try{await fetch(url,{method:'POST',body:JSON.stringify({token:'TisaJets2026!',action:'upsert',table:'agreements',record:rec})})}catch(e){}
+}
+async function deleteRecord(id){
+  const url=getURL();if(!url)return
+  try{await fetch(url,{method:'POST',body:JSON.stringify({token:'TisaJets2026!',action:'delete',table:'agreements',id})})}catch(e){}
+}
+async function syncNow(){
+  const url=getURL()
+  if(!url){showSyncStatus('Please enter a Web App URL first.','err');return}
+  const d=getData()
+  showSyncStatus('Syncing '+d.length+' agreements...','ok')
+  let ok=0
+  for(const r of d){
+    try{await fetch(url,{method:'POST',body:JSON.stringify({token:'TisaJets2026!',action:'upsert',table:'agreements',record:r})});ok++}catch(e){}
+  }
+  showSyncStatus(ok===d.length?'All '+d.length+' synced.':'Synced '+ok+'/'+d.length+'.',ok===d.length?'ok':'err')
+}
+async function pullFromSheets(){
+  const url=getURL()
+  if(!url){showSyncStatus('Please enter a Web App URL first.','err');return}
+  try{
+    const res=await fetch(url+'?token=TisaJets2026!')
+    const json=await res.json()
+    if(json.agreements&&json.agreements.length){setData(json.agreements);showSyncStatus('Pulled '+json.agreements.length+' agreements.','ok')}
+    else showSyncStatus('No agreements found in Sheets.','ok')
+  }catch(e){showSyncStatus('Pull failed: '+e.message,'err')}
+}
+function showSyncStatus(msg,t){
+  const el=document.getElementById('sync-status')
+  el.className='sync-status '+(t==='ok'?'sync-ok':'sync-err')
+  el.textContent=msg
+  el.style.display='block'
+}
+function clearAll(){
+  if(!confirm('Delete ALL local agreements? Cannot be undone.'))return
+  localStorage.removeItem(STORE_KEY)
+  renderStats();renderTable()
+  toast('Cleared.')
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────
+function toast(msg){
+  const t=document.getElementById('toast')
+  t.textContent=msg
+  t.classList.add('show')
+  setTimeout(()=>t.classList.remove('show'),2800)
+}
+</script>
+</body>
+</html>
