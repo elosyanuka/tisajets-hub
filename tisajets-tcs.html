@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>TisaJets — Terms &amp; Conditions</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Poppins',sans-serif;background:#f4f6fb;color:#1a1a2e;min-height:100vh}
+:root{--navy:#0F1835;--gold:#C5920D;--white:#fff;--border:#e2e8f0;--muted:#64748b}
+.screen{display:none}
+.screen.active{display:flex}
+
+/* LOGIN */
+#screen-login{align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,var(--navy) 0%,#1a2a5e 100%)}
+.login-card{background:var(--white);border-radius:16px;padding:48px 40px;width:360px;box-shadow:0 20px 60px rgba(0,0,0,.3);text-align:center}
+.login-logo{font-size:28px;font-weight:700;color:var(--navy);letter-spacing:2px;margin-bottom:4px}
+.login-sub{font-size:12px;color:var(--gold);font-weight:500;margin-bottom:32px;letter-spacing:1px}
+.login-card input{width:100%;padding:14px 16px;border:2px solid var(--border);border-radius:10px;font-size:15px;font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s;margin-bottom:16px;text-align:center;letter-spacing:4px}
+.login-card input:focus{border-color:var(--gold)}
+.login-card button{width:100%;padding:14px;background:var(--navy);color:var(--white);border:none;border-radius:10px;font-size:15px;font-weight:600;font-family:'Poppins',sans-serif;cursor:pointer}
+.login-error{color:#e53e3e;font-size:13px;margin-top:12px;display:none}
+
+/* SHELL */
+#screen-main{flex-direction:column;min-height:100vh}
+.topbar{background:var(--navy);padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.topbar-brand{font-size:20px;font-weight:700;color:var(--gold);letter-spacing:2px}
+.topbar-sub{font-size:11px;color:rgba(255,255,255,.5);font-weight:400;margin-left:8px}
+.topbar-nav button{background:none;border:1.5px solid rgba(255,255,255,.2);color:rgba(255,255,255,.8);padding:8px 16px;border-radius:8px;font-family:'Poppins',sans-serif;font-size:13px;cursor:pointer;margin-left:6px}
+.topbar-nav button:hover{background:var(--gold);color:var(--navy);border-color:var(--gold)}
+
+/* PAGE */
+.page-body{padding:32px;flex:1;max-width:720px;margin:0 auto;width:100%}
+.page-title{font-size:20px;font-weight:700;color:var(--navy);margin-bottom:24px}
+
+.card{background:var(--white);border-radius:14px;padding:28px;box-shadow:0 2px 12px rgba(0,0,0,.06);margin-bottom:20px}
+.card h3{font-size:13px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid var(--gold)}
+.card-desc{font-size:14px;color:var(--muted);margin-bottom:22px;line-height:1.65}
+
+.form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.form-group label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.form-group input{padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Poppins',sans-serif;font-size:14px;outline:none;transition:border-color .2s;background:var(--white)}
+.form-group input:focus{border-color:var(--gold)}
+
+.btn-navy{background:var(--navy);color:var(--white);border:none;padding:13px 28px;border-radius:10px;font-family:'Poppins',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s;display:inline-flex;align-items:center;gap:8px}
+.btn-navy:hover{opacity:.88}
+.btn-gold{background:var(--gold);color:var(--white);border:none;padding:13px 28px;border-radius:10px;font-family:'Poppins',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s;display:inline-flex;align-items:center;gap:8px}
+.btn-gold:hover{opacity:.88}
+
+.doc-badge{display:inline-block;background:#e8f0fe;color:#1a56db;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;margin-bottom:14px;letter-spacing:.3px}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;background:var(--navy);color:var(--white);padding:14px 22px;border-radius:10px;font-size:14px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.3);transform:translateY(80px);opacity:0;transition:all .3s;z-index:9999;pointer-events:none}
+#toast.show{transform:translateY(0);opacity:1}
+
+@media(max-width:768px){
+  .topbar{padding:0 16px;height:56px}
+  .topbar-brand{font-size:17px}
+  .page-body{padding:16px}
+  .card{padding:20px}
+  .btn-navy,.btn-gold{width:100%;justify-content:center}
+  input{font-size:16px !important}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="screen-login" class="screen active">
+  <div class="login-card">
+    <div class="login-logo">TISAJETS</div>
+    <div class="login-sub">TERMS &amp; CONDITIONS</div>
+    <input type="password" id="pw-input" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <button onclick="doLogin()">Access</button>
+    <div class="login-error" id="login-error">Incorrect password. Try again.</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="screen-main" class="screen">
+  <div class="topbar">
+    <div style="display:flex;align-items:baseline;gap:6px">
+      <span class="topbar-brand">TISAJETS</span>
+      <span class="topbar-sub">Terms &amp; Conditions</span>
+    </div>
+    <div class="topbar-nav">
+      <button onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+  <div class="page-body">
+    <div class="page-title">Terms &amp; Conditions</div>
+
+    <!-- Feature 1: Download -->
+    <div class="card">
+      <h3>Official T&amp;Cs Document</h3>
+      <div class="doc-badge">13 Clauses &nbsp;·&nbsp; Last updated February 2025</div>
+      <p class="card-desc">Download the official TisaJets BV Terms &amp; Conditions as a professionally formatted PDF. This document is hardcoded and cannot be edited from this tool.</p>
+      <button class="btn-navy" onclick="generateTCsPDF(false,'','')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17v3a2 2 0 002 2h14a2 2 0 002-2v-3"/></svg>
+        Download T&amp;Cs PDF
+      </button>
+    </div>
+
+    <!-- Feature 2: Signing version -->
+    <div class="card">
+      <h3>Send for Signing</h3>
+      <p class="card-desc">Generate a personalised signing version pre-filled with the client's name and a signature block at the bottom. Download and upload to SignWell for the client to sign electronically.</p>
+      <div class="form-group">
+        <label>Client Name</label>
+        <input type="text" id="sign-name" placeholder="e.g. John Smith"/>
+      </div>
+      <div class="form-group">
+        <label>Client Email (for your records)</label>
+        <input type="email" id="sign-email" placeholder="client@example.com"/>
+      </div>
+      <button class="btn-gold" onclick="doGenerateSigning()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+        Generate Signing Version
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const PASSWORD = '3l2D2005'
+
+function doLogin() {
+  if (document.getElementById('pw-input').value === PASSWORD) {
+    sessionStorage.setItem('tj_tcs_auth', '1')
+    document.getElementById('login-error').style.display = 'none'
+    show('screen-main')
+  } else {
+    document.getElementById('login-error').style.display = 'block'
+    document.getElementById('pw-input').value = ''
+  }
+}
+function doLogout() { sessionStorage.removeItem('tj_tcs_auth'); show('screen-login') }
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => { s.classList.remove('active'); s.style.display = 'none' })
+  const s = document.getElementById(id)
+  s.style.display = 'flex'
+  s.classList.add('active')
+}
+window.onload = () => { if (sessionStorage.getItem('tj_tcs_auth') === '1') show('screen-main') }
+
+function doGenerateSigning() {
+  const name = document.getElementById('sign-name').value.trim()
+  if (!name) { toast('Please enter the client name.'); return }
+  generateTCsPDF(true, name, document.getElementById('sign-email').value.trim())
+}
+
+// ── T&Cs CONTENT ────────────────────────────────────────────────────────
+const TCS_SECTIONS = [
+  { num: 1, title: 'Who We Are', text: 'TisaJets BV is a private aviation brokerage company registered in Belgium. We act exclusively as an intermediary between clients and licensed aircraft operators. TisaJets is not an airline, does not own or operate aircraft, and does not hold an Air Operator Certificate (AOC). All flights are operated by third-party licensed operators.' },
+  { num: 2, title: 'Our Role', text: 'When you book a flight through TisaJets, you are engaging us to source and arrange air transportation on your behalf. The contract of carriage is between you and the operator. TisaJets acts solely as your agent in arranging that carriage and accepts no liability for the operation, safety, punctuality, or cancellation of any flight.' },
+  { num: 3, title: 'Empty Leg Flights', text: "Empty leg flights are repositioning flights made available at reduced rates when an aircraft needs to travel without its primary passengers. By their nature, empty legs are subject to change or cancellation at any time and without notice, including after confirmation, if the operator's primary charter is modified or cancelled. By booking an empty leg flight through TisaJets, you accept this inherent risk." },
+  { num: 4, title: 'Booking & Confirmation', text: 'A booking is only confirmed once the following two conditions are met: you have signed the TisaJets Broker Agreement and full payment has been received by TisaJets. Until both conditions are satisfied, no booking exists and availability cannot be guaranteed. TisaJets reserves the right to release the aircraft to another client if payment is not received within the agreed timeframe.' },
+  { num: 5, title: 'Payment', text: 'Full payment is due before any booking is confirmed. All prices are quoted in euros and are inclusive of standard fees unless stated otherwise. Payment must be made by bank transfer to: TisaJets BV, IBAN: BE 39 7390 3272 9619, BIC: KREDBEBB, Reference: TJ-Q-[XXXX]. TisaJets does not accept responsibility for delays caused by late payment.' },
+  { num: 6, title: 'Cancellation & Refunds', text: 'Once full payment has been received and the booking has been confirmed with the operator, the following cancellation policy applies: Cancel 5 or more days before departure: 75% refund. Cancel 2 to 4 days before departure: 50% refund. Cancel less than 48 hours before departure: no refund. Refunds, where applicable, will be processed within 5 to 10 business days by bank transfer to the original payment account. In the event that the operator cancels the flight, TisaJets will make every reasonable effort to source an alternative aircraft of equivalent standard. If no suitable alternative is available, TisaJets will refund the amount paid in full minus any costs already incurred on your behalf. TisaJets accepts no liability for any additional costs you may incur as a result of a flight cancellation, including but not limited to accommodation, ground transport, or connecting flights.' },
+  { num: 7, title: 'Passenger Responsibilities', text: 'You are responsible for ensuring that all passengers hold valid travel documents, including passports and any required visas, for the full itinerary. Passengers must arrive at the departure location at the time specified in the flight confirmation. TisaJets accepts no liability for missed flights due to late arrival. You must provide accurate passenger information including full legal names, passport numbers, dates of birth, nationalities, and approximate weights in advance of the flight. Failure to provide this information on time may result in the flight being unable to depart.' },
+  { num: 8, title: 'Baggage', text: 'Baggage allowances are determined by the aircraft type and operator. TisaJets will communicate the applicable limits at the time of booking. Excess baggage may not be accepted and is at the discretion of the operator.' },
+  { num: 9, title: 'Liability', text: "TisaJets' liability in connection with any booking is limited to the amount paid by the client for that specific booking. TisaJets accepts no liability for indirect or consequential losses of any kind. The operator, as the licensed carrier, bears full responsibility for the safe operation of the flight in accordance with applicable aviation regulations." },
+  { num: 10, title: 'Force Majeure', text: 'TisaJets accepts no liability for failure to perform its obligations where such failure results from circumstances beyond its reasonable control, including but not limited to severe weather, air traffic control restrictions, strikes, political instability, or acts of God.' },
+  { num: 11, title: 'Privacy & Data Protection', text: 'TisaJets collects and processes personal data in accordance with the General Data Protection Regulation (GDPR). Passenger data collected during the booking process is used solely for the purpose of arranging your flight and is shared only with the relevant operator and airport authorities as required. We do not sell or share your data with third parties for marketing purposes. For any data-related requests, contact us at info@tisajets.com.' },
+  { num: 12, title: 'Governing Law', text: 'These Terms & Conditions are governed by Belgian law. Any disputes arising from or in connection with these Terms & Conditions shall be subject to the exclusive jurisdiction of the courts of Antwerp, Belgium.' },
+  { num: 13, title: 'Contact', text: 'TisaJets BV, Appelmansstraat 1, 2018 Antwerp, Belgium. Email: info@tisajets.com. Phone: +32 485 31 33 91.' },
+]
+const TCS_CLOSING = 'These Terms & Conditions apply to all bookings made through TisaJets BV. By proceeding with a booking, you confirm that you have read, understood, and accepted these terms in full.'
+
+// ── PDF GENERATION ──────────────────────────────────────────────────────
+function generateTCsPDF(signingVersion, clientName, clientEmail) {
+  const { jsPDF } = window.jspdf
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+  writeTCsIntoDoc(doc, signingVersion, clientName)
+  const base = 'TisaJets_Terms_Conditions'
+  const suffix = signingVersion ? '_' + (clientName || 'Signing').replace(/[^a-zA-Z0-9]/g, '_') : ''
+  doc.save(base + suffix + '.pdf')
+  toast('PDF downloaded.')
+}
+
+function writeTCsIntoDoc(doc, signingVersion, clientName) {
+  const ML = 18, MR = 192, PW = 174
+  let y = 0
+
+  function tcsFtr() {
+    doc.setFontSize(7.5)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(130, 130, 130)
+    doc.text('TisaJets BV  |  Appelmansstraat 1, 2018 Antwerp, Belgium  |  info@tisajets.com  |  +32 485 31 33 91', 105, 290, { align: 'center' })
+    doc.setDrawColor(197, 146, 13)
+    doc.setLineWidth(0.3)
+    doc.line(ML, 286, MR, 286)
+  }
+
+  function tcsNextPage() {
+    tcsFtr()
+    doc.addPage()
+    doc.setFillColor(15, 24, 53)
+    doc.rect(0, 0, 210, 16, 'F')
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(197, 146, 13)
+    doc.text('TISAJETS', ML, 10)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(255, 255, 255)
+    doc.text('Terms & Conditions (continued)', ML + 38, 10)
+    y = 25
+  }
+
+  function chk(n) { if (y + n > 272) tcsNextPage() }
+
+  function wb(txt, size, bold, color, indent) {
+    const lines = doc.splitTextToSize(txt, PW - (indent || 0))
+    doc.setFontSize(size || 8.5)
+    doc.setFont('helvetica', bold ? 'bold' : 'normal')
+    doc.setTextColor(...(color || [55, 55, 55]))
+    lines.forEach(l => { chk(5); doc.text(l, indent ? ML + indent : ML, y); y += 4.6 })
+  }
+
+  // ── HEADER BAND ──
+  doc.setFillColor(15, 24, 53)
+  doc.rect(0, 0, 210, 38, 'F')
+  doc.setFontSize(24)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(197, 146, 13)
+  doc.text('TISAJETS', ML, 20)
+  doc.setFontSize(7.5)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(255, 255, 255)
+  doc.text('TisaJets BV  |  Appelmansstraat 1, 2018 Antwerp, Belgium', ML, 27)
+  doc.text('VAT: BE 1035.952.080  |  info@tisajets.com  |  +32 485 31 33 91', ML, 33)
+  y = 50
+
+  // ── TITLE ──
+  doc.setFontSize(16)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(15, 24, 53)
+  doc.text('Terms & Conditions', 105, y, { align: 'center' })
+  y += 5
+  doc.setDrawColor(197, 146, 13)
+  doc.setLineWidth(0.9)
+  doc.line(ML, y, MR, y)
+  y += 8
+
+  // ── COMPANY META ──
+  doc.setFontSize(8.5)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(15, 24, 53)
+  doc.text('TisaJets BV', ML, y); y += 5
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(80, 80, 80)
+  doc.text('Appelmansstraat 1, 2018 Antwerp, Belgium', ML, y); y += 5
+  doc.text('VAT: BE 1035.952.080', ML, y); y += 5
+  doc.setFont('helvetica', 'italic')
+  doc.setTextColor(120, 120, 120)
+  doc.text('Last updated: February 2025', ML, y); y += 10
+
+  doc.setDrawColor(197, 146, 13)
+  doc.setLineWidth(0.5)
+  doc.line(ML, y, MR, y)
+  y += 8
+
+  // ── SECTIONS ──
+  TCS_SECTIONS.forEach(sec => {
+    chk(16)
+    doc.setFontSize(9.5)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(15, 24, 53)
+    doc.text(sec.num + '. ' + sec.title, ML, y)
+    y += 5.5
+    wb(sec.text, 8.5, false, [55, 55, 55], 0)
+    y += 5
+  })
+
+  // ── CLOSING ──
+  chk(20)
+  doc.setDrawColor(197, 146, 13)
+  doc.setLineWidth(0.5)
+  doc.line(ML, y, MR, y)
+  y += 7
+  wb(TCS_CLOSING, 8.5, true, [15, 24, 53])
+  y += 6
+
+  // ── SIGNATURE BLOCK (signing version only) ──
+  if (signingVersion) {
+    chk(80)
+    doc.setDrawColor(197, 146, 13)
+    doc.setLineWidth(0.5)
+    doc.line(ML, y, MR, y)
+    y += 8
+
+    doc.setFontSize(10.5)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(15, 24, 53)
+    doc.text('Signatures', ML, y)
+    y += 7
+
+    doc.setFontSize(8.5)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(55, 55, 55)
+    wb('By signing below, I confirm that I have read, understood, and accepted the Terms & Conditions of TisaJets BV.', 8.5, false, [55, 55, 55])
+    y += 6
+
+    const bY = y, bW = 82, bH = 56
+    const lX = ML, rX = ML + 90
+
+    // Client box
+    doc.setDrawColor(200, 200, 200)
+    doc.setLineWidth(0.3)
+    doc.rect(lX, bY, bW, bH)
+    doc.setFontSize(8)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(15, 24, 53)
+    doc.text('Client', lX + 3, bY + 6)
+    if (clientName) {
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(55, 55, 55)
+      doc.text('Name: ' + clientName, lX + 3, bY + 15)
+    } else {
+      doc.setTextColor(140, 140, 140)
+      doc.text('Name: _______________', lX + 3, bY + 15)
+    }
+    doc.setTextColor(140, 140, 140)
+    doc.setFont('helvetica', 'normal')
+    doc.text('Date: _______________', lX + 3, bY + 30)
+    doc.text('Signature: _______________', lX + 3, bY + 45)
+
+    // TisaJets box
+    doc.setDrawColor(200, 200, 200)
+    doc.setLineWidth(0.3)
+    doc.rect(rX, bY, bW, bH)
+    doc.setFontSize(8)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(15, 24, 53)
+    doc.text('TisaJets BV', rX + 3, bY + 6)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(55, 55, 55)
+    doc.text('Name: Elad Yanukashvili', rX + 3, bY + 15)
+    doc.text('Title: Founder', rX + 3, bY + 23)
+    doc.setTextColor(140, 140, 140)
+    doc.text('Date: _______________', rX + 3, bY + 34)
+    doc.text('Signature: _______________', rX + 3, bY + 47)
+  }
+
+  tcsFtr()
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast')
+  t.textContent = msg
+  t.classList.add('show')
+  setTimeout(() => t.classList.remove('show'), 2800)
+}
+</script>
+</body>
+</html>
