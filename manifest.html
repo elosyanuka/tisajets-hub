@@ -178,7 +178,8 @@ async function doSubmit(){
   btn.textContent='Submitting…';btn.disabled=true
 
   try{
-    await fetch(APPS,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({token:SECRET,action:'manifest_submit',ref:REF,passengers:pax,submitted_at:new Date().toISOString()})})
+    const params=new URLSearchParams({token:SECRET,action:'manifest_submit',ref:REF,passengers:JSON.stringify(pax),submitted_at:new Date().toISOString()})
+    await fetch(APPS+'?'+params.toString())
   }catch(e){console.warn('submit:',e)}
 
   document.getElementById('form-screen').style.display='none'
