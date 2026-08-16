@@ -59,12 +59,6 @@ body{font-family:'Poppins',sans-serif;background:#f0f3f8;color:#1a1a2e;min-heigh
 </head>
 <body>
 
-<!-- hidden form for CORS-free submission -->
-<iframe name="hf" style="display:none"></iframe>
-<form id="hform" method="GET" target="hf" style="display:none">
-  <input name="token"/><input name="action"/><input name="ref"/><input name="passengers"/><input name="submitted_at"/>
-</form>
-
 <!-- FORM -->
 <div id="form-screen">
   <div class="hdr">
@@ -184,14 +178,8 @@ async function doSubmit(){
   btn.textContent='Submitting…';btn.disabled=true
 
   try{
-    const f=document.getElementById('hform')
-    f.action=APPS
-    f.elements[0].value=SECRET
-    f.elements[1].value='manifest_submit'
-    f.elements[2].value=REF
-    f.elements[3].value=JSON.stringify(pax)
-    f.elements[4].value=new Date().toISOString()
-    f.submit()
+    const params=new URLSearchParams({token:SECRET,action:'manifest_submit',ref:REF,passengers:JSON.stringify(pax),submitted_at:new Date().toISOString()})
+    new Image().src=APPS+'?'+params.toString()
   }catch(e){console.warn('submit:',e)}
 
   document.getElementById('form-screen').style.display='none'
