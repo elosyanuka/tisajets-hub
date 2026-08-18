@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>TisaJets — Manifests</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--navy:#0F1835;--gold:#C5920D;--bg:#f4f6fb;--white:#fff;--border:#e2e8f0;--muted:#64748b;--red:#ef4444}
+body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--navy);min-height:100vh}
+
+/* ── SCREEN SYSTEM ── */
+.screen{display:none}
+.screen.active{display:flex}
+
+/* ── LOGIN ── */
+#s-login{align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,var(--navy) 0%,#1a2a5e 100%)}
+.login-card{background:var(--white);border-radius:16px;padding:48px 40px;width:340px;box-shadow:0 20px 60px rgba(0,0,0,.3);text-align:center}
+.login-logo{font-size:26px;font-weight:700;color:var(--navy);letter-spacing:2px;margin-bottom:4px}
+.login-sub{font-size:11px;color:var(--gold);font-weight:600;letter-spacing:1px;margin-bottom:32px}
+.login-card input{width:100%;padding:14px 16px;border:2px solid var(--border);border-radius:10px;font-size:15px;font-family:'Poppins',sans-serif;outline:none;margin-bottom:14px;text-align:center;letter-spacing:4px}
+.login-card input:focus{border-color:var(--gold)}
+.login-card button{width:100%;padding:14px;background:var(--navy);color:var(--white);border:none;border-radius:10px;font-size:15px;font-weight:600;font-family:'Poppins',sans-serif;cursor:pointer}
+.login-err{color:var(--red);font-size:13px;margin-top:10px;display:none}
+
+/* ── SHELL ── */
+#s-dash,#s-create,#s-view{flex-direction:column;min-height:100vh}
+.topbar{background:var(--navy);height:60px;padding:0 28px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:sticky;top:0;z-index:50}
+.tb-brand{font-size:18px;font-weight:700;color:var(--gold);letter-spacing:2px}
+.tb-title{font-size:12px;color:rgba(255,255,255,.5);margin-left:8px;font-weight:400}
+.tb-actions{display:flex;gap:8px}
+.tb-btn{background:none;border:1.5px solid rgba(255,255,255,.25);color:rgba(255,255,255,.8);padding:7px 14px;border-radius:8px;font-family:'Poppins',sans-serif;font-size:13px;cursor:pointer}
+.tb-btn:hover,.tb-btn.gold{background:var(--gold);color:var(--navy);border-color:var(--gold)}
+.page{padding:28px;flex:1}
+
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px}
+.stat-card{background:var(--white);border-radius:12px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,.06);text-align:center}
+.stat-n{font-size:32px;font-weight:700;color:var(--navy)}
+.stat-l{font-size:12px;color:var(--muted);margin-top:4px;font-weight:500}
+
+/* ── SECTION HEADER ── */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.sec-hdr h2{font-size:16px;font-weight:600}
+.btn{padding:10px 18px;border-radius:10px;font-family:'Poppins',sans-serif;font-size:14px;font-weight:600;cursor:pointer;border:none}
+.btn-primary{background:var(--gold);color:var(--white)}
+.btn-outline{background:var(--white);color:var(--navy);border:1.5px solid var(--border)}
+.btn-outline:hover{border-color:var(--navy)}
+.btn-sm{padding:7px 14px;font-size:13px;border-radius:8px}
+.btn-danger{background:#fee2e2;color:#991b1b;border:none}
+
+/* ── TABLE ── */
+.tbl-wrap{background:var(--white);border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th{background:#f8fafc;padding:11px 16px;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;text-align:left;border-bottom:1px solid var(--border)}
+td{padding:13px 16px;font-size:13px;border-bottom:1px solid #f8fafc;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafbfd}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-pending{background:#fef3c7;color:#92400e}
+.badge-completed{background:#d1fae5;color:#065f46}
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-state svg{margin:0 auto 16px;display:block;opacity:.35}
+.empty-state p{font-size:14px}
+
+/* ── CREATE FORM ── */
+.form-card{background:var(--white);border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);padding:28px;margin-bottom:20px}
+.form-card h3{font-size:15px;font-weight:600;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.fg{margin-bottom:18px}
+.fg label{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px}
+.fg input,.fg select{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Poppins',sans-serif;font-size:14px;background:var(--white);color:var(--navy);outline:none}
+.fg input:focus,.fg select:focus{border-color:var(--gold)}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+/* ── LINK BOX ── */
+.link-box{background:#f8fafc;border:1.5px solid var(--border);border-radius:10px;padding:14px 16px;font-size:13px;word-break:break-all;color:var(--muted);margin-bottom:16px;display:none}
+.link-actions{display:flex;gap:10px;flex-wrap:wrap}
+
+/* ── VIEW ── */
+.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
+.info-card{background:var(--white);border-radius:10px;padding:16px 20px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.info-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.info-value{font-size:15px;font-weight:600;color:var(--navy)}
+.pax-section{background:var(--white);border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);overflow:hidden}
+.pax-section-hdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.pax-section-hdr h3{font-size:15px;font-weight:600}
+.waiting{text-align:center;padding:48px 20px;color:var(--muted)}
+.waiting svg{margin:0 auto 14px;display:block;opacity:.4}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:12px 24px;border-radius:10px;font-size:14px;font-weight:500;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
+
+@media(max-width:640px){
+  .stats{grid-template-columns:1fr 1fr}
+  .info-grid{grid-template-columns:1fr 1fr}
+  .frow{grid-template-columns:1fr}
+  .page{padding:16px}
+  .topbar{padding:0 16px}
+}
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ── -->
+<div class="screen active" id="s-login">
+  <div class="login-card">
+    <div class="login-logo">TISAJETS</div>
+    <div class="login-sub">Passenger Manifests</div>
+    <input type="password" id="pw" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()"/>
+    <button onclick="login()">Sign In</button>
+    <div class="login-err" id="login-err">Incorrect password</div>
+  </div>
+</div>
+
+<!-- ── DASHBOARD ── -->
+<div class="screen" id="s-dash">
+  <div class="topbar">
+    <div><span class="tb-brand">TISAJETS</span><span class="tb-title">Manifests</span></div>
+    <div class="tb-actions">
+      <button class="tb-btn gold" onclick="showCreate()">+ New Manifest</button>
+      <button class="tb-btn" onclick="logout()">Sign Out</button>
+    </div>
+  </div>
+  <div class="page">
+    <div class="stats">
+      <div class="stat-card"><div class="stat-n" id="st-total">0</div><div class="stat-l">Total</div></div>
+      <div class="stat-card"><div class="stat-n" id="st-pending">0</div><div class="stat-l">Pending</div></div>
+      <div class="stat-card"><div class="stat-n" id="st-done">0</div><div class="stat-l">Completed</div></div>
+    </div>
+    <div class="sec-hdr">
+      <h2>All Manifests</h2>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Reference</th><th>Client</th><th>Route</th><th>Date</th><th>Pax</th><th>Status</th><th></th></tr></thead>
+        <tbody id="tbl-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ── CREATE ── -->
+<div class="screen" id="s-create">
+  <div class="topbar">
+    <div><span class="tb-brand">TISAJETS</span><span class="tb-title">New Manifest</span></div>
+    <div class="tb-actions">
+      <button class="tb-btn" onclick="showDash()">← Back</button>
+    </div>
+  </div>
+  <div class="page">
+    <div class="form-card">
+      <h3>Flight Details</h3>
+      <div class="frow">
+        <div class="fg"><label>Reference *</label><input type="text" id="c-ref" placeholder="e.g. TJ-F-001"/></div>
+        <div class="fg"><label>Passengers *</label><input type="number" id="c-pax" min="1" max="19" placeholder="1–19"/></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label>Route *</label><input type="text" id="c-route" placeholder="e.g. Brussels → Nice"/></div>
+        <div class="fg"><label>Flight Date *</label><input type="date" id="c-date"/></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label>Client Name *</label><input type="text" id="c-client" placeholder="Full name"/></div>
+        <div class="fg"><label>Client WhatsApp</label><input type="text" id="c-phone" placeholder="+32 ..."/></div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <h3>Generated Link</h3>
+      <div class="link-box" id="link-box"></div>
+      <div class="link-actions">
+        <button class="btn btn-primary" onclick="generateLink()">Generate Link</button>
+        <button class="btn btn-outline btn-sm" id="btn-copy" onclick="copyLink()" style="display:none">Copy Link</button>
+        <button class="btn btn-outline btn-sm" id="btn-wa" onclick="openWA()" style="display:none">Send via WhatsApp</button>
+        <button class="btn btn-primary btn-sm" id="btn-save" onclick="saveManifest()" style="display:none">Save &amp; Go to Dashboard</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── VIEW ── -->
+<div class="screen" id="s-view">
+  <div class="topbar">
+    <div><span class="tb-brand">TISAJETS</span><span class="tb-title" id="v-topbar-ref"></span></div>
+    <div class="tb-actions">
+      <button class="tb-btn" onclick="showDash()">← Back</button>
+    </div>
+  </div>
+  <div class="page">
+    <div class="info-grid">
+      <div class="info-card"><div class="info-label">Reference</div><div class="info-value" id="v-ref"></div></div>
+      <div class="info-card"><div class="info-label">Client</div><div class="info-value" id="v-client"></div></div>
+      <div class="info-card"><div class="info-label">Route</div><div class="info-value" id="v-route"></div></div>
+      <div class="info-card"><div class="info-label">Date</div><div class="info-value" id="v-date"></div></div>
+      <div class="info-card"><div class="info-label">Passengers</div><div class="info-value" id="v-pax"></div></div>
+      <div class="info-card"><div class="info-label">Status</div><div class="info-value" id="v-status"></div></div>
+    </div>
+
+    <div class="sec-hdr">
+      <h2>Passenger Data</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" onclick="refreshPax()">↻ Refresh</button>
+        <button class="btn btn-outline btn-sm" id="btn-operator" onclick="copyOperator()" style="display:none">Copy for Operator</button>
+        <button class="btn btn-outline btn-sm" id="btn-pdf" onclick="downloadPDF()" style="display:none">Download PDF</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteManifest()">Delete</button>
+      </div>
+    </div>
+
+    <div class="pax-section">
+      <div id="pax-content">
+        <div class="waiting">
+          <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z"/></svg>
+          <p>No passenger data yet. Waiting for client to submit.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const PASS   = '3l2D2005'
+const AUTH   = 'tj_manifests_auth'
+const STORE  = 'tj_manifests_v1'
+const APPS   = 'https://script.google.com/macros/s/AKfycbwbDVYoiy2gg42CH29Z8IZzaPAKEC4WXfUJ6ybD4G6xcqDRq4gJ5xrbd3sjqAOS2jB2vA/exec'
+const SECRET = 'tisa-jets-9f3kP2xQwL8mNvR7'
+const BASE   = 'https://tisajets-deploy-4.vercel.app/manifest.html'
+
+let _current = null  // manifest currently being viewed
+let _genLink = ''    // currently generated link
+
+// ── AUTH ──────────────────────────────────────────────────
+;(function init() {
+  if (sessionStorage.getItem(AUTH) === '1') { showDash(); return }
+  // hub injects auth
+  const k = new URLSearchParams(location.search).get('_auth')
+  if (k === '1') { sessionStorage.setItem(AUTH, '1'); showDash() }
+})()
+
+function login() {
+  if (document.getElementById('pw').value === PASS) {
+    sessionStorage.setItem(AUTH, '1')
+    showDash()
+  } else {
+    document.getElementById('login-err').style.display = 'block'
+  }
+}
+
+function logout() {
+  sessionStorage.removeItem(AUTH)
+  show('s-login')
+}
+
+// ── SCREENS ───────────────────────────────────────────────
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
+  document.getElementById(id).classList.add('active')
+}
+
+function showDash() {
+  renderDash()
+  show('s-dash')
+}
+
+function showCreate() {
+  _genLink = ''
+  document.getElementById('link-box').style.display = 'none'
+  document.getElementById('btn-copy').style.display = 'none'
+  document.getElementById('btn-wa').style.display = 'none'
+  document.getElementById('btn-save').style.display = 'none'
+  show('s-create')
+}
+
+// ── DATA ──────────────────────────────────────────────────
+function getData() {
+  try { return JSON.parse(localStorage.getItem(STORE)) || [] } catch { return [] }
+}
+function setData(d) { localStorage.setItem(STORE, JSON.stringify(d)) }
+
+// ── DASHBOARD ─────────────────────────────────────────────
+function renderDash() {
+  const data = getData()
+  const pending   = data.filter(m => m.status === 'pending').length
+  const completed = data.filter(m => m.status === 'completed').length
+  document.getElementById('st-total').textContent   = data.length
+  document.getElementById('st-pending').textContent  = pending
+  document.getElementById('st-done').textContent     = completed
+
+  const tbody = document.getElementById('tbl-body')
+  if (!data.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">
+      <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      <p>No manifests yet. Create your first one.</p>
+    </div></td></tr>`
+    return
+  }
+  tbody.innerHTML = [...data].reverse().map(m => `<tr>
+    <td><strong>${m.ref}</strong></td>
+    <td>${m.client}</td>
+    <td>${m.route}</td>
+    <td>${fmtDate(m.date)}</td>
+    <td>${m.pax}</td>
+    <td><span class="badge badge-${m.status}">${m.status}</span></td>
+    <td><button class="btn btn-outline btn-sm" onclick="viewManifest('${m.id}')">View</button></td>
+  </tr>`).join('')
+}
+
+function fmtDate(d) {
+  if (!d) return '—'
+  const mon = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+  const [y, m, da] = d.split('-')
+  return parseInt(da) + ' ' + mon[parseInt(m) - 1] + ' ' + y
+}
+
+// ── CREATE ────────────────────────────────────────────────
+function gv(id) { return (document.getElementById(id)?.value || '').trim() }
+
+function generateLink() {
+  const ref    = gv('c-ref')
+  const pax    = gv('c-pax')
+  const route  = gv('c-route')
+  const date   = gv('c-date')
+  const client = gv('c-client')
+
+  if (!ref || !pax || !route || !date || !client) {
+    toast('Please fill in all required fields first.')
+    return
+  }
+
+  const params = new URLSearchParams({ ref, pax, route: encodeURIComponent(route), date, client: encodeURIComponent(client) })
+  _genLink = BASE + '?' + params.toString()
+
+  const box = document.getElementById('link-box')
+  box.textContent = _genLink
+  box.style.display = 'block'
+  document.getElementById('btn-copy').style.display = 'inline-block'
+  document.getElementById('btn-wa').style.display   = document.getElementById('c-phone').value.trim() ? 'inline-block' : 'none'
+  document.getElementById('btn-save').style.display = 'inline-block'
+}
+
+function copyLink() {
+  navigator.clipboard.writeText(_genLink).then(() => toast('Link copied!'))
+}
+
+function openWA() {
+  const phone = gv('c-phone').replace(/\s/g, '')
+  const client = gv('c-client')
+  const msg = `Hey ${client}, please fill in the passenger details for your upcoming flight with TisaJets. It only takes 2 minutes: ${_genLink}`
+  const url = phone ? `https://wa.me/${phone.replace('+','')}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`
+  window.open(url, '_blank')
+}
+
+function saveManifest() {
+  if (!_genLink) { toast('Generate a link first.'); return }
+  const m = {
+    id:      'M' + Date.now(),
+    ref:     gv('c-ref'),
+    client:  gv('c-client'),
+    phone:   gv('c-phone'),
+    route:   gv('c-route'),
+    date:    gv('c-date'),
+    pax:     parseInt(gv('c-pax')),
+    status:  'pending',
+    link:    _genLink,
+    created: new Date().toISOString(),
+    passengers: []
+  }
+  const data = getData()
+  data.push(m)
+  setData(data)
+  // clear form
+  ;['c-ref','c-pax','c-route','c-date','c-client','c-phone'].forEach(id => document.getElementById(id).value = '')
+  _genLink = ''
+  toast('Manifest saved!')
+  showDash()
+}
+
+// ── VIEW ──────────────────────────────────────────────────
+function viewManifest(id) {
+  const m = getData().find(x => x.id === id)
+  if (!m) return
+  _current = m
+
+  document.getElementById('v-topbar-ref').textContent = m.ref
+  document.getElementById('v-ref').textContent    = m.ref
+  document.getElementById('v-client').textContent = m.client
+  document.getElementById('v-route').textContent  = m.route
+  document.getElementById('v-date').textContent   = fmtDate(m.date)
+  document.getElementById('v-pax').textContent    = m.pax
+  document.getElementById('v-status').textContent = m.status.charAt(0).toUpperCase() + m.status.slice(1)
+
+  document.getElementById('btn-operator').style.display = m.passengers.length ? 'inline-block' : 'none'
+  document.getElementById('btn-pdf').style.display      = m.passengers.length ? 'inline-block' : 'none'
+
+  if (m.passengers.length) renderPaxTable(m.passengers)
+  else renderWaiting()
+
+  show('s-view')
+}
+
+function renderWaiting() {
+  document.getElementById('pax-content').innerHTML = `
+    <div class="waiting">
+      <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z"/></svg>
+      <p>No passenger data yet. Waiting for client to submit.</p>
+    </div>`
+}
+
+function renderPaxTable(pax) {
+  document.getElementById('pax-content').innerHTML = `
+    <div style="overflow-x:auto">
+    <table>
+      <thead><tr><th>#</th><th>Full Name</th><th>DOB</th><th>Passport</th><th>Nationality</th><th>Gender</th><th>Weight</th></tr></thead>
+      <tbody>${pax.map((p,i) => `<tr>
+        <td>${i+1}</td>
+        <td><strong>${p.full_name||p.name||'—'}</strong></td>
+        <td>${p.dob||p.date_of_birth||'—'}</td>
+        <td>${p.passport||p.passport_number||'—'}</td>
+        <td>${p.nationality||'—'}</td>
+        <td>${p.gender||'—'}</td>
+        <td>${p.weight||'—'}</td>
+      </tr>`).join('')}</tbody>
+    </table>
+    </div>`
+  document.getElementById('btn-operator').style.display = 'inline-block'
+  document.getElementById('btn-pdf').style.display      = 'inline-block'
+}
+
+async function refreshPax() {
+  if (!_current) return
+  toast('Fetching passenger data…')
+  try {
+    const url = APPS + '?token=' + SECRET + '&action=manifest_fetch&ref=' + encodeURIComponent(_current.ref)
+    const res  = await fetch(url)
+    const json = await res.json()
+    const pax  = json.passengers || []
+    if (pax.length) {
+      const data = getData()
+      const idx  = data.findIndex(x => x.id === _current.id)
+      if (idx >= 0) { data[idx].passengers = pax; data[idx].status = 'completed'; setData(data) }
+      _current.passengers = pax
+      _current.status     = 'completed'
+      document.getElementById('v-status').textContent = 'Completed'
+      renderPaxTable(pax)
+      toast('Passenger data loaded!')
+    } else {
+      toast('No data yet — client hasn\'t submitted.')
+    }
+  } catch(e) {
+    toast('Could not reach server. Try again.')
+  }
+}
+
+// ── COPY FOR OPERATOR ─────────────────────────────────────
+function copyOperator() {
+  if (!_current?.passengers?.length) return
+  const m = _current
+  const lines = [`Passenger Manifest — ${m.ref}`, `Route: ${m.route}`, `Date: ${fmtDate(m.date)}`, `Client: ${m.client}`, '']
+  m.passengers.forEach((p, i) => {
+    const wt = p.weight ? ` | Weight: ${p.weight}kg` : ''
+    lines.push(`${i+1}. ${p.full_name||p.name} | DOB: ${p.dob||p.date_of_birth} | Passport: ${p.passport||p.passport_number} | Nationality: ${p.nationality} | Gender: ${p.gender}${wt}`)
+  })
+  navigator.clipboard.writeText(lines.join('\n')).then(() => toast('Copied for operator!'))
+}
+
+// ── PDF ───────────────────────────────────────────────────
+function downloadPDF() {
+  if (!_current?.passengers?.length) return
+  const { jsPDF } = window.jspdf
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+  const W = 210, M = 20, CW = W - M * 2
+
+  // Header bar
+  doc.setFillColor(15, 24, 53)
+  doc.rect(0, 0, W, 32, 'F')
+  doc.setFontSize(18); doc.setFont('helvetica','bold')
+  doc.setTextColor(197, 146, 13)
+  doc.text('TISAJETS', M, 14)
+  doc.setFontSize(10); doc.setFont('helvetica','normal')
+  doc.setTextColor(255,255,255)
+  doc.text('Passenger Manifest', M, 22)
+  doc.text(`Reference: ${_current.ref}`, W - M, 22, { align: 'right' })
+
+  // Flight info
+  let y = 44
+  doc.setFontSize(10); doc.setTextColor(100,116,139)
+  doc.text(`Route: ${_current.route}`, M, y)
+  doc.text(`Date: ${fmtDate(_current.date)}`, M + CW/2, y)
+  y += 8
+  doc.text(`Client: ${_current.client}`, M, y)
+  doc.text(`Passengers: ${_current.pax}`, M + CW/2, y)
+
+  // Gold divider
+  y += 10
+  doc.setDrawColor(197, 146, 13); doc.setLineWidth(0.8)
+  doc.line(M, y, W - M, y)
+
+  // Table header
+  y += 10
+  doc.setFillColor(15, 24, 53)
+  doc.rect(M, y - 5, CW, 9, 'F')
+  doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(197, 146, 13)
+  const cols = [['#',8],['Full Name',38],['DOB',24],['Passport',26],['Nationality',26],['Gender',20],['Weight',18]]
+  let x = M + 3
+  cols.forEach(([h, w]) => { doc.text(h, x, y + 1); x += w })
+
+  // Table rows
+  doc.setFont('helvetica','normal'); doc.setFontSize(8)
+  _current.passengers.forEach((p, i) => {
+    y += 10
+    if (y > 270) { doc.addPage(); y = 20 }
+    if (i % 2 === 0) { doc.setFillColor(248, 250, 252); doc.rect(M, y - 5, CW, 9, 'F') }
+    doc.setTextColor(26, 26, 46)
+    x = M + 3
+    const vals = [i+1, p.full_name||p.name, p.dob||p.date_of_birth, p.passport||p.passport_number, p.nationality, p.gender, p.weight||'—']
+    cols.forEach(([,w], ci) => {
+      doc.text(String(vals[ci] || '—'), x, y + 1)
+      x += w
+    })
+  })
+
+  // Footer
+  y += 16
+  doc.setDrawColor(197, 146, 13); doc.line(M, y, W - M, y)
+  y += 6
+  doc.setFontSize(8); doc.setTextColor(100,116,139)
+  doc.text('TisaJets BV · Appelmansstraat 1, 2018 Antwerp · info@tisajets.com · +32 485 31 33 91', W/2, y, { align: 'center' })
+
+  doc.save(`Manifest_${_current.ref}.pdf`)
+}
+
+// ── DELETE ────────────────────────────────────────────────
+function deleteManifest() {
+  if (!confirm('Delete this manifest?')) return
+  setData(getData().filter(m => m.id !== _current.id))
+  toast('Deleted.')
+  showDash()
+}
+
+// ── TOAST ─────────────────────────────────────────────────
+function toast(msg) {
+  const t = document.getElementById('toast')
+  t.textContent = msg; t.classList.add('show')
+  setTimeout(() => t.classList.remove('show'), 2800)
+}
+</script>
+</body>
+</html>

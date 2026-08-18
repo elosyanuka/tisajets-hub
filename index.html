@@ -233,6 +233,11 @@
       Confirmations
     </button>
 
+    <button class="nav-item" data-tool="manifests" onclick="showTool('manifests')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Manifests
+    </button>
+
     <button class="nav-item" data-tool="invoices" onclick="showTool('invoices')">
       <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
       Invoices
@@ -259,6 +264,7 @@
     <iframe class="tool-frame"        id="frame-commission"    title="Commission"></iframe>
     <iframe class="tool-frame"        id="frame-estimator"     title="Estimator"></iframe>
     <iframe class="tool-frame"        id="frame-confirmations" title="Confirmations"></iframe>
+    <iframe class="tool-frame"        id="frame-manifests"     title="Manifests"></iframe>
 <iframe class="tool-frame"        id="frame-invoices"      title="Invoices"></iframe>
     <iframe class="tool-frame"        id="frame-agreements"    title="Agreements"></iframe>
     <iframe class="tool-frame"        id="frame-tcs"           title="T&Cs"></iframe>
@@ -275,6 +281,7 @@ const TOOLS = {
   commission:    { src: './tisajets-commission.html',    authKey: 'tj_cc_auth' },
   estimator:     { src: './tisajets-estimator.html',     authKey: null },
   confirmations: { src: './tisajets-confirmations.html', authKey: 'tj_auth' },
+  manifests:     { src: './tisajets-manifests.html',    authKey: 'tj_manifests_auth' },
 invoices:      { src: './tisajets-invoices.html',      authKey: 'tj_inv_auth' },
   agreements:    { src: './tisajets-agreements.html',    authKey: 'tj_agr_auth' },
   tcs:           { src: './tisajets-tcs.html',           authKey: 'tj_tcs_auth' },
